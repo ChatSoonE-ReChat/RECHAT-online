@@ -17,7 +17,7 @@
         android:layout_marginStart="20dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
-    
+
     <TextView
         android:id="@+id/main_title_tv"
         android:layout_width="wrap_content"
@@ -71,19 +71,19 @@
         app:layout_constraintTop_toBottomOf="@+id/main_title_tv"
         tools:listitem="@layout/item_chat_list_default" />
 
-<!--    <View-->
-<!--        android:id="@+id/main_bottom_bar_shadow_view"-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="6dp"-->
-<!--        app:layout_constraintStart_toStartOf="@id/main_bottom_bar_view"-->
-<!--        app:layout_constraintEnd_toEndOf="@id/main_bottom_bar_view"-->
-<!--        app:layout_constraintTop_toTopOf="@id/main_bottom_bar_view"-->
-<!--        android:background="@drawable/shadow" />-->
+    <!--    <View-->
+    <!--        android:id="@+id/main_bottom_bar_shadow_view"-->
+    <!--        android:layout_width="match_parent"-->
+    <!--        android:layout_height="6dp"-->
+    <!--        app:layout_constraintStart_toStartOf="@id/main_bottom_bar_view"-->
+    <!--        app:layout_constraintEnd_toEndOf="@id/main_bottom_bar_view"-->
+    <!--        app:layout_constraintTop_toTopOf="@id/main_bottom_bar_view"-->
+    <!--        android:background="@drawable/shadow" />-->
 
     <View
         android:id="@+id/main_bottom_bar_view"
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="50dp"
         android:background="@color/white"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -96,7 +96,7 @@
         android:layout_height="70dp"
         android:translationZ="8dp"
         android:background="@drawable/background_icon_folder"
-        android:layout_marginBottom="10dp"
+        android:layout_marginBottom="20dp"
         app:layout_constraintBottom_toBottomOf="@+id/main_bottom_bar_view"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
@@ -182,7 +182,8 @@
         android:layout_height="30dp"
         android:src="@drawable/ic_baseline_block_24"
         android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@+id/main_folder_background_view"
+        app:layout_constraintTop_toTopOf="@id/main_bottom_bar_view"
+        app:layout_constraintBottom_toBottomOf="@id/main_bottom_bar_view"
         app:layout_constraintStart_toEndOf="@+id/main_folder_background_view"
         app:layout_constraintEnd_toEndOf="parent" />
 
@@ -193,7 +194,8 @@
         android:layout_height="wrap_content"
         app:transformation_duration="550"
         app:layout_constraintStart_toEndOf="@+id/main_folder_background_view"
-        app:layout_constraintBottom_toBottomOf="@id/main_folder_background_view"
+        app:layout_constraintTop_toTopOf="@id/main_bottom_bar_view"
+        app:layout_constraintBottom_toBottomOf="@id/main_bottom_bar_view"
         app:layout_constraintEnd_toEndOf="parent">
 
         <ImageView

@@ -65,15 +65,14 @@ class MyFolderActivity: BaseActivity<ActivityMyFolderBinding>(ActivityMyFolderBi
 
             // 폴더 아이콘 클릭 시 해당 폴더로 이동
             override fun onFolderClick(view: View, position: Int) {
-                var folder=folderRVAdapter.getSelectedFolder(position)
+                val selectedFolder = folderRVAdapter.getSelectedFolder(position)
 
-                Log.d("FolderContentss", folder.toString())
                 // folder삽입시 status변경!null아님!!!!!!!!
                 val gson=Gson()
-                var folderJson=gson.toJson(folder)
+                val folderJson=gson.toJson(selectedFolder)
 
                 // 폴더 정보를 보내기기
-               var intent=Intent(this@MyFolderActivity, FolderContentActivity::class.java)
+                var intent=Intent(this@MyFolderActivity, FolderContentActivity::class.java)
                 intent.putExtra("folderData", folderJson)
                 startActivity(intent)
             }
@@ -267,10 +266,8 @@ class MyFolderActivity: BaseActivity<ActivityMyFolderBinding>(ActivityMyFolderBi
             if(pattern.equals("0")) {   // 패턴이 설정되어 있지 않은 경우 패턴 설정 페이지로
                 Toast.makeText(this@MyFolderActivity, "패턴이 설정되어 있지 않습니다.\n패턴을 설정해주세요.", Toast.LENGTH_SHORT).show()
                 startNextActivity(CreatePatternActivity::class.java)
-                finish()
             } else {
                 startNextActivity(InputPatternActivity::class.java)
-                finish()
             }
         }
 
