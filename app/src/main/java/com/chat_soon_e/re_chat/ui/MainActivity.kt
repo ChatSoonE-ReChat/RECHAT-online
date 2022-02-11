@@ -17,6 +17,7 @@ import androidx.annotation.RequiresApi
 import androidx.core.view.GravityCompat
 import androidx.recyclerview.widget.RecyclerView
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import java.util.*
 import kotlin.collections.ArrayList
 import androidx.appcompat.widget.SwitchCompat
@@ -27,34 +28,34 @@ import com.chat_soon_e.re_chat.ApplicationClass.Companion.HIDDEN
 import com.chat_soon_e.re_chat.R
 import com.chat_soon_e.re_chat.data.entities.*
 import com.chat_soon_e.re_chat.data.remote.auth.USER_ID
+import com.chat_soon_e.re_chat.data.remote.chat.ChatService
 import com.chat_soon_e.re_chat.databinding.ItemFolderListBinding
+import com.chat_soon_e.re_chat.ui.view.GetChatListView
 import com.chat_soon_e.re_chat.utils.getID
 import com.chat_soon_e.re_chat.utils.permissionGrantred
 import com.chat_soon_e.re_chat.utils.saveID
 import com.google.android.material.navigation.NavigationView
-import com.skydoves.transformationlayout.TransformationAppCompatActivity
-import com.skydoves.transformationlayout.onTransformationStartContainer
 
-class MainActivity: NavigationView.OnNavigationItemSelectedListener, TransformationAppCompatActivity() {
+class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatActivity(), GetChatListView {
     private lateinit var binding: ActivityMainBinding
-    private lateinit var appDB: AppDatabase
+    private lateinit var database: AppDatabase
+    private lateinit var mainRVAdapter: MainRVAdapter           // chat list recycler view adpater
+    private lateinit var mPopupWindow: PopupWindow
+
     private var iconList = ArrayList<Icon>()
     private var folderList = ArrayList<Folder>()
     private var chatList = ArrayList<ChatList>()                // 데이터베이스로부터 chat list를 받아올 변수
-    private lateinit var mainRVAdapter: MainRVAdapter           // chat list recycler view adpater
     private var permission: Boolean = true                      // 알림 허용 변수
     private val chatViewModel: ChatViewModel by viewModels()
-    private lateinit var mPopupWindow: PopupWindow
-    private val userID=getID()
+    private val userID = getID()
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        onTransformationStartContainer()
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         Log.d("userID", "onCreate: $userID USERID: $USER_ID")
-        appDB = AppDatabase.getInstance(this)!!
+        database = AppDatabase.getInstance(this)!!
         initIcon()                  // icon list 초기화
         initFolder()                // folder list 초기화
     }
@@ -63,10 +64,17 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, Transformat
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onStart() {
         super.onStart()
-        if(userID.toInt()==-1){//비정상적 오류로 인해 종료되는 경우 제일 최근에 있는 유저정보를 가져옴(splash에서 유저id는 추가하지 않고 삭제만 한다)
-            val user=appDB.userDao().getUsers()
+        if(userID.toInt() == -1){ //비정상적 오류로 인해 종료되는 경우 제일 최근에 있는 유저정보를 가져옴(splash에서 유저id는 추가하지 않고 삭제만 한다)
+            val user = database.userDao().getUsers()
             user?.get(0)?.let { saveID(it.kakaoUserIdx) }
         }
+
+//        if(chatList.isEmpty()) {
+//            // 비어있는 경우 API 호출로 초기화
+//            val chatService = ChatService()
+//            chatService.getChatList(this, userID)
+//        }
+
         Log.d("userID", "onStart: $userID  USERID: $USER_ID")
         initRecyclerView()          // RecylcerView Adapter 연결 & 기타 설정
         initDrawerLayout()          // 설정 메뉴창 설정
@@ -76,46 +84,48 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, Transformat
     // 아이콘 초기화
     // 이렇게 넣어주는 방법밖에 없는 건가?
     private fun initIcon() {
-        iconList = appDB.iconDao().getIconList() as ArrayList
+        iconList = database.iconDao().getIconList() as ArrayList
 
         // 이 부분은 서버와 통신하지 않고 자체적으로 구현
         if(iconList.isEmpty()) {
-            appDB.iconDao().insert(Icon(R.drawable.chatsoon01))
-            appDB.iconDao().insert(Icon(R.drawable.chatsoon02))
-            appDB.iconDao().insert(Icon(R.drawable.chatsoon03))
-            appDB.iconDao().insert(Icon(R.drawable.chatsoon04))
-            appDB.iconDao().insert(Icon(R.drawable.chatsoon05))
-            appDB.iconDao().insert(Icon(R.drawable.chatsoon06))
-            appDB.iconDao().insert(Icon(R.drawable.chatsoon06))
-            appDB.iconDao().insert(Icon(R.drawable.chatsoon07))
-            appDB.iconDao().insert(Icon(R.drawable.chatsoon08))
-            appDB.iconDao().insert(Icon(R.drawable.chatsoon09))
-            appDB.iconDao().insert(Icon(R.drawable.chatsoon10))
-            appDB.iconDao().insert(Icon(R.drawable.chatsoon11))
-            appDB.iconDao().insert(Icon(R.drawable.chatsoon12))
-            appDB.iconDao().insert(Icon(R.drawable.chatsoon13))
-            appDB.iconDao().insert(Icon(R.drawable.chatsoon14))
-            appDB.iconDao().insert(Icon(R.drawable.chatsoon15))
-            appDB.iconDao().insert(Icon(R.drawable.chatsoon16))
-            iconList = appDB.iconDao().getIconList() as ArrayList
+            database.iconDao().insert(Icon(R.drawable.chatsoon01))
+            database.iconDao().insert(Icon(R.drawable.chatsoon02))
+            database.iconDao().insert(Icon(R.drawable.chatsoon03))
+            database.iconDao().insert(Icon(R.drawable.chatsoon04))
+            database.iconDao().insert(Icon(R.drawable.chatsoon05))
+            database.iconDao().insert(Icon(R.drawable.chatsoon06))
+            database.iconDao().insert(Icon(R.drawable.chatsoon06))
+            database.iconDao().insert(Icon(R.drawable.chatsoon07))
+            database.iconDao().insert(Icon(R.drawable.chatsoon08))
+            database.iconDao().insert(Icon(R.drawable.chatsoon09))
+            database.iconDao().insert(Icon(R.drawable.chatsoon10))
+            database.iconDao().insert(Icon(R.drawable.chatsoon11))
+            database.iconDao().insert(Icon(R.drawable.chatsoon12))
+            database.iconDao().insert(Icon(R.drawable.chatsoon13))
+            database.iconDao().insert(Icon(R.drawable.chatsoon14))
+            database.iconDao().insert(Icon(R.drawable.chatsoon15))
+            database.iconDao().insert(Icon(R.drawable.chatsoon16))
+            iconList = database.iconDao().getIconList() as ArrayList
         }
     }
 
     // 폴더 초기화
     private fun initFolder() {
-        folderList = appDB.folderDao().getFolderList() as ArrayList
+        folderList = database.folderDao().getFolderList() as ArrayList
 
         // API: 전체폴더 목록 가져오기 (숨김폴더 제외)
         // 폴더 초기 세팅 (새폴더1, 새폴더2)
         if (folderList.isEmpty()) {
-            appDB.folderDao().insert(Folder(0, userID, null, "새폴더1", R.drawable.ic_baseline_folder_24, ACTIVE))
-            appDB.folderDao().insert(Folder(1, userID, null, "새폴더2", R.drawable.ic_baseline_folder_24, ACTIVE))
-            folderList = appDB.folderDao().getFolderList() as ArrayList
+            database.folderDao().insert(Folder(0, userID, null, "새폴더1", R.drawable.ic_baseline_folder_24, ACTIVE))
+            database.folderDao().insert(Folder(1, userID, null, "새폴더2", R.drawable.ic_baseline_folder_24, ACTIVE))
+            folderList = database.folderDao().getFolderList() as ArrayList
         }
     }
 
     // RecyclerView
     private fun initRecyclerView() {
+        Log.d("MAIN", "after chatService.getChatList()")
+
         // RecyclerView 구분선
         val recyclerView = binding.mainContent.mainChatListRecyclerView
         val dividerItemDecoration =
@@ -140,11 +150,11 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, Transformat
             @SuppressLint("RestrictedApi")
             override fun onDefaultChatClick(view: View, position: Int, chat:ChatList) {
                 val spf=this@MainActivity.getSharedPreferences("chatAll", MODE_PRIVATE)
-                var editor=spf.edit()
+                val editor=spf.edit()
                 editor.putInt("chatAll", 1)
-                editor.commit()
+                editor.apply()
 
-                var intent=Intent(this@MainActivity, ChatActivity::class.java)
+                val intent=Intent(this@MainActivity, ChatActivity::class.java)
                 //intent.putExtra("chatListJson", chatJson)
                 intent.putExtra("chatListJson", chat)
                 startActivity(intent)
@@ -152,11 +162,10 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, Transformat
                 mainRVAdapter.clearSelectedItemList()
 //                눌렀을 경우 chatIdx의 isNew를 바꾼다.
                 val database=AppDatabase.getInstance(this@MainActivity)!!
-                database.chatDao().updateIsNew(chatList[position].chatIdx,1)
-                database.chatListDao().updateIsNew(chatList[position].chatIdx, 1)
+                database.chatDao().updateIsNew(chatList[position].chatIdx,0)
+                database.chatListDao().updateIsNew(chatList[position].chatIdx, 0)
                 Log.d("chatSelectedNew", database.chatDao().getChatByChatIdx(chatList[position].chatIdx).toString())
                 Log.d("chatSelectedNewChatList", chatList[position].isNew.toString())
-
             }
         })
 
@@ -191,8 +200,8 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, Transformat
         binding.mainContent.mainChatListRecyclerView.adapter = mainRVAdapter
 
         // 최근 챗 목록 데이터 추가
-        appDB = AppDatabase.getInstance(this)!!
-        appDB.chatDao().getRecentChat(userID).observe(this, {
+        database = AppDatabase.getInstance(this)!!
+        database.chatDao().getRecentChat(userID).observe(this, {
             Log.d("liveDataAdd", it.toString())
             mainRVAdapter.addItem(it)
             chatList.clear()
@@ -402,7 +411,7 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, Transformat
     // 폴더로 보내기 팝업 윈도우
     @SuppressLint("InflateParams")
     private fun popupWindowToFolderMenu() {
-        folderList = appDB.folderDao().getFolderList() as ArrayList
+        folderList = database.folderDao().getFolderList() as ArrayList
 
         // 팝업 윈도우 사이즈를 잘못 맞추면 아이템들이 안 뜨므로 하드 코딩으로 사이즈 조정해주기
         // 아이콘 16개 (기본)
@@ -414,7 +423,7 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, Transformat
         val popupView = inflater.inflate(R.layout.popup_window_to_folder_menu, null)
         mPopupWindow = PopupWindow(popupView, width, height)
 
-        mPopupWindow.animationStyle = -1        // 애니메이션 설정 (-1: 설정 안 함, 0: 설정)
+        mPopupWindow.animationStyle = 0        // 애니메이션 설정 (-1: 설정 안 함, 0: 설정)
         mPopupWindow.isFocusable = true         // 외부 영역 선택 시 팝업 윈도우 종료
         mPopupWindow.isOutsideTouchable = true
         mPopupWindow.showAtLocation(popupView, Gravity.CENTER, 0, 0)
@@ -460,8 +469,8 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, Transformat
                         startActivity(intent)
                     }
                 }
-                val chatDao=appDB.chatDao()
-                val folderContentDao=appDB.folderContentDao()
+                val chatDao=database.chatDao()
+                val folderContentDao=database.folderContentDao()
 
                 // 선택된 채팅의 아이디 리스트를 가져옴
                 var chatIdxList=mainRVAdapter.getSelectedItem()
@@ -490,7 +499,7 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, Transformat
                         folderContentDao.insertOtOChat(folderIdx, otherUserIdx)
                 //folderContentDao.insert(FolderContent(folderIdx, i, ACTIVE))
                 }
-                Log.d("folderContents",appDB.folderContentDao().getAllfolder().toString())
+                Log.d("folderContents",database.folderContentDao().getAllfolder().toString())
                 Toast.makeText(this@MainActivity, "selected folder: ${selectedFolder.folderName}", Toast.LENGTH_SHORT).show()
 
                 // 팝업 윈도우를 꺼주는 역할
@@ -498,7 +507,7 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, Transformat
                 binding.mainContent.mainBackgroundView.visibility = View.INVISIBLE
             }
         })
-        folderListRVAdapter.addFolderList(appDB.folderDao().getFolderExceptDeletedFolder(DELETED) as ArrayList)
+        folderListRVAdapter.addFolderList(database.folderDao().getFolderExceptDeletedFolder(DELETED) as ArrayList)
     }
 
     // 디바이스 크기에 사이즈를 맞추기 위한 함수
@@ -519,9 +528,28 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, Transformat
         }
     }
 
+    // 팝업창 닫을 때
     inner class PopupWindowDismissListener(): PopupWindow.OnDismissListener {
         override fun onDismiss() {
             binding.mainContent.mainBackgroundView.visibility = View.INVISIBLE
+        }
+    }
+
+    override fun onGetChatListSuccess(chatList: ArrayList<ChatList>) {
+        Log.d("ENTER", "onGetChatListSuccess()")
+
+//        database = AppDatabase.getInstance(this)!!
+//        mainRVAdapter.addItem(chatList)
+//        this.chatList.clear()
+//        this.chatList.addAll(chatList)
+    }
+
+    override fun onGetChatListFailure(code: Int, message: String) {
+        // 채팅 불러오기 실패한 경우
+        when(code) {
+            4000 -> Log.d("MAIN/API-ERROR", message)
+            4001 -> Log.d("MAIN/API-ERROR", message)
+            2100 -> Log.d("MAIN/API-ERROR", message)
         }
     }
 }

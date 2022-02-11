@@ -25,6 +25,7 @@ import com.chat_soon_e.re_chat.ApplicationClass.Companion.DELETED
 import com.chat_soon_e.re_chat.ApplicationClass.Companion.HIDDEN
 import com.chat_soon_e.re_chat.data.entities.Icon
 import com.chat_soon_e.re_chat.databinding.ItemIconBinding
+import com.chat_soon_e.re_chat.utils.getID
 import com.google.gson.Gson
 
 class MyFolderActivity: BaseActivity<ActivityMyFolderBinding>(ActivityMyFolderBinding::inflate), NavigationView.OnNavigationItemSelectedListener {
@@ -34,6 +35,7 @@ class MyFolderActivity: BaseActivity<ActivityMyFolderBinding>(ActivityMyFolderBi
     private var folderList = ArrayList<Folder>()
     private var iconList = ArrayList<Icon>()
     private lateinit var mPopupWindow: PopupWindow
+    private val userID = getID()
 
     // Popupwindow와 RecyclerView 연결을 위해 선언
     private lateinit var itemBinding: ItemMyFolderBinding
@@ -435,7 +437,7 @@ class MyFolderActivity: BaseActivity<ActivityMyFolderBinding>(ActivityMyFolderBi
                 val lastIdx = folderList.size
 
                 // 선택한 아이콘과 전달받은 폴더 이름으로 폴더 하나 생성한 후 RoomDB에 적용
-                val newFolder = Folder(lastIdx, 0, null, name, selectedIcon.iconImage, ACTIVE)
+                val newFolder = Folder(lastIdx, userID, null, name, selectedIcon.iconImage, ACTIVE)
                 database = AppDatabase.getInstance(this@MyFolderActivity)!!
                 database.folderDao().insert(newFolder)
                 folderList = database.folderDao().getFolderList() as ArrayList

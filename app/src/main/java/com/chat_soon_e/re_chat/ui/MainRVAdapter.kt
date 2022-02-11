@@ -162,14 +162,15 @@ class MainRVAdapter(private val context: Context, private val mItemClickListener
     fun addItem(chats: List<ChatList>){
         chatList.clear()
         chatList.addAll(chats as ArrayList)
+        Log.d("MAIN", "chatList in MainRVAdapter: $chatList")
         notifyDataSetChanged()
     }
 
     //선택된 chatIdx를 가져온다.
-    fun getSelectedItem():ArrayList<Int>{
+    fun getSelectedItem():ArrayList<Long>{
         //chatlist에서 checked 된 list들의 chatIdx를 저장하고 가져온다
         val TG="removeList"
-        var chatIdxList=ArrayList<Int>()
+        var chatIdxList=ArrayList<Long>()
         val selectedList=chatList.filter{ chatlist-> chatlist.isChecked as Boolean }
 
         for(i in selectedList){
@@ -199,9 +200,11 @@ class MainRVAdapter(private val context: Context, private val mItemClickListener
             binding.itemChatListNameTv.text = chat.nickName
             Log.d("MAIN-RV", "profile: ${chat.profileImg}")
             binding.itemChatListContentTv.text = chat.message
-            binding.itemChatListDateTimeTv.text = dateToString(chat.postTime)
+            binding.itemChatListDateTimeTv.text = chat.postTime
+            // 가공은 필요할듯
+//            binding.itemChatListDateTimeTv.text = dateToString(chat.postTime)
 
-            if(chat.isNew == 0) {
+            if(chat.isNew == 1) {
                 binding.itemChatListNewCv.visibility = View.VISIBLE
             }
             else {
@@ -234,7 +237,8 @@ class MainRVAdapter(private val context: Context, private val mItemClickListener
             binding.itemChatListNameTv.text = chat.nickName
             Log.d("MAIN-RV", "profile: ${chat.profileImg}")
             binding.itemChatListContentTv.text = chat.message
-            binding.itemChatListDateTimeTv.text = dateToString(chat.postTime)
+            binding.itemChatListDateTimeTv.text = chat.postTime
+//            binding.itemChatListDateTimeTv.text = dateToString(chat.postTime)
 
         }
     }

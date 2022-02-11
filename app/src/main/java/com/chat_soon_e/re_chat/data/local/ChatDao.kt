@@ -18,11 +18,11 @@ interface ChatDao {
 
     //하나의 톡 삭제
     @Query("DELETE FROM ChatTable WHERE chatIdx = :chatIdx")
-    fun deleteByChatIdx(chatIdx:Int)
+    fun deleteByChatIdx(chatIdx: Long)
 
     //갠톡 전체 삭제
     @Query("DELETE FROM ChatTable WHERE OtherUserIdx= :otherUserIdx AND groupName is 'null'")
-    fun deleteOneChat(otherUserIdx:Int)
+    fun deleteOneChat(otherUserIdx: Long)
 
     //단톡 전체 삭제
     @Query("DELETE FROM ChatTable WHERE groupName = :groupName AND otherUserIdx IN (SELECT CD.otherUserIdx FROM (SELECT C.otherUserIdx fROM ChatTable C INNER JOIN OtherUserTable OU ON C.otherUserIdx=OU.otherUserIdx WHERE OU.kakaoUserIdx = :use_id AND C.groupName = :groupName) CD)")
@@ -30,11 +30,11 @@ interface ChatDao {
 
     //해당 chatIdx 대화 가져오기
     @Query("SELECT * FROM ChatTable WHERE chatIdx = :chatIdx")
-    fun getChatByChatIdx(chatIdx:Int):Chat
+    fun getChatByChatIdx(chatIdx: Long):Chat
 
     //해당 chatIdx isNew 바꾸기
     @Query("UPDATE ChatTable SET isNew= :status WHERE chatIdx= :chatIdx")
-    fun updateIsNew(chatIdx:Int, status:Int)
+    fun updateIsNew(chatIdx: Long, status: Int)
 
     // 상대방 대화 가져오기
     @Query("SELECT * FROM ChatTable WHERE otherUserIdx = :idx")
@@ -63,7 +63,7 @@ interface ChatDao {
             "    FROM ChatTable AS C INNER JOIN OtherUserTable AS OU on C.otherUserIdx = OU.otherUserIdx\n" +
             "    WHERE OU.kakaoUserIdx = :userIdx AND C.status != 'DELETED' AND C.otherUserIdx IN (SELECT otherUserIdx FROM ChatTable WHERE chatIdx = :chatIdx) AND groupName is 'null'\n" +
             "ORDER BY C.postTime DESC")
-    fun getOneChatList(userIdx:Long, chatIdx:Int):LiveData<List<ChatList>>
+    fun getOneChatList(userIdx:Long, chatIdx:Long):LiveData<List<ChatList>>
 
 
     //단톡, 검증된
@@ -71,7 +71,7 @@ interface ChatDao {
             " FROM ChatTable C INNER JOIN OtherUserTable OU on C.otherUserIdx = OU.otherUserIdx" +
             " WHERE OU.kakaoUserIdx = :userIdx AND C.status != 'DELETED' AND groupName = (SELECT groupName FROM ChatTable WHERE chatIdx = :chatIdx)" +
             " ORDER BY C.postTime DESC")
-    fun getOrgChatList(userIdx:Long, chatIdx: Int):LiveData<List<ChatList>>
+    fun getOrgChatList(userIdx:Long, chatIdx: Long):LiveData<List<ChatList>>
 
 
     //모든 챗 목록
@@ -90,6 +90,5 @@ interface ChatDao {
     fun getChatIdxList(): List<Int>
 
     @Query("SELECT otherUserIdx FROM ChatTable WHERE chatIdx = :chatIdx")
-    fun getChatOtherIdx(chatIdx: Int):Int
-
+    fun getChatOtherIdx(chatIdx: Long):Int
 }

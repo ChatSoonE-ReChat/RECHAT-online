@@ -8,7 +8,7 @@ import java.io.Serializable
 @Entity(tableName = "FolderContentTable")
 data class FolderContent(
     var folderIdx: Int,
-    var chatIdx: Int,
+    var chatIdx: Long,
     var status: String? = "ACTIVE"   // ACTIVE, DELETED
 ):Serializable{
     @PrimaryKey(autoGenerate = true) var folderContentIdx: Int = 0

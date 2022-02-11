@@ -12,7 +12,7 @@ interface FolderContentDao {
 
     //채팅 한개를 폴더에 추가
     @Query("INSERT INTO FolderContentTable (folderIdx, chatIdx, status) VALUES (:folderIdx, :chatIdx,'ACTIVE')")
-    fun insertChat(folderIdx:Int, chatIdx:Int)
+    fun insertChat(folderIdx:Int, chatIdx:Long)
 
     //채팅방 해당 폴더에 추가
     //@Query("INSERT INTO FolderContentTable (folderIdx, chatIdx) VALUES (:")")
@@ -27,8 +27,8 @@ interface FolderContentDao {
 
     //채팅을 폴더에서 제거
     @Query("DELETE FROM FolderContentTable WHERE folderIdx= :folderIdx AND chatIdx= :chatIdx")
-    fun deleteChat(folderIdx:Int, chatIdx:Int)
+    fun deleteChat(folderIdx: Int, chatIdx: Long)
 
     @Query("SELECT * FROM foldercontenttable")
-    fun getAllfolder():List<FolderContent>
+    fun getAllfolder(): List<FolderContent>
 }

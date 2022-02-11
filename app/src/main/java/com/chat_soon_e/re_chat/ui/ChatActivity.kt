@@ -225,7 +225,7 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
                 // 폴더로 이동시키는 코드 작성
                 var selectedChatIdx=chatRVAdapter.getSelectedItemList()
                 for(i in selectedChatIdx){
-                    database.folderContentDao().insertChat(folderList[itemPosition].idx, i)
+                    database.folderContentDao().insertChat(folderList[itemPosition].idx, i.toLong())
                 }
                 val TG="moveListcontent"
                 Log.d(TG, "해당 폴더 목록"+database.folderContentDao().getAllfolder().toString())
