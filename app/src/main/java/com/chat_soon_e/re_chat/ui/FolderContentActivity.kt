@@ -6,8 +6,6 @@ import android.util.Log
 import android.view.WindowInsets
 import android.view.WindowManager
 import android.widget.PopupMenu
-import com.chat_soon_e.re_chat.data.entities.Chat
-import com.chat_soon_e.re_chat.data.entities.Folder
 import com.chat_soon_e.re_chat.data.local.AppDatabase
 import com.chat_soon_e.re_chat.databinding.ActivityFolderContentBinding
 import com.chat_soon_e.re_chat.utils.getID

@@ -11,10 +11,7 @@ import androidx.annotation.RequiresApi
 import androidx.core.graphics.drawable.toBitmap
 import com.chat_soon_e.re_chat.ApplicationClass.Companion.ACTIVE
 import com.chat_soon_e.re_chat.data.entities.Chat
-import com.chat_soon_e.re_chat.data.entities.OtherUser
 import com.chat_soon_e.re_chat.data.local.AppDatabase
-import com.chat_soon_e.re_chat.data.remote.chat.ChatService
-import com.chat_soon_e.re_chat.ui.view.ChatView
 import com.chat_soon_e.re_chat.utils.getID
 import com.chat_soon_e.re_chat.utils.saveID
 import java.io.File
@@ -57,8 +54,6 @@ class MyNotificationListener: NotificationListenerService() {
         val packageName: String = sbn.packageName
 
         if(packageName != null && packageName == "com.kakao.talk") {
-            // 데이터베이스 연결
-            database = AppDatabase.getInstance(this)!!
             val extras = sbn.notification.extras
             val name = extras.getString(Notification.EXTRA_TITLE)   // 발신자
             val text = extras.getCharSequence(Notification.EXTRA_TEXT)  // 내용
@@ -83,11 +78,7 @@ class MyNotificationListener: NotificationListenerService() {
             // 알림 메세지(264개의 메세지 등) 제외 대화 내용 DB 저장
             // 음악 메세지(id==2016) 차단
             if(name!=null && sbn.id!=2016){
-                val otherUser = database.otherUserDao().getOtherUserByNameId(name.toString(), userID)
-
-                // //이미 있던 유저인지 확인
-                if(otherUser != null) {
-                    val chat = Chat(otherUser.otherUserIdx, subText.toString(),text.toString(), dateAsString, -1, ACTIVE)
+                if
 
                     // 이미 있던 유저라면
                     var blocked: String?
@@ -143,19 +134,19 @@ class MyNotificationListener: NotificationListenerService() {
                         database.chatDao().insert(Chat(other.otherUserIdx, subText.toString(),text.toString(), dateAsString, -1, ACTIVE))
 
 
-//                        if(subText == null) {
-//                            // 단톡이 아닌 경우 groupName == null
-//                            // Server API: 채팅 추가하기
-//                            val remoteChat = com.chat_soon_e.re_chat.data.remote.chat.Chat(other.nickname, null, fileName, text.toString(), dateAsString)
-//                            val chatService = ChatService()
-//                            chatService.addChat(this, userID, remoteChat)
-//                        } else {
-//                            // 단톡인 경우
-//                            // Server API: 채팅 추가하기
-//                            val remoteChat = com.chat_soon_e.re_chat.data.remote.chat.Chat(other.nickname, subText.toString(), fileName, text.toString(), dateAsString)
-//                            val chatService = ChatService()
-//                            chatService.addChat(this, userID, remoteChat)
-//                        }
+                        if(subText == null) {
+                            // 단톡이 아닌 경우 groupName == null
+                            // Server API: 채팅 추가하기
+                            val remoteChat = com.chat_soon_e.re_chat.data.remote.chat.Chat(other.nickname, null, fileName, text.toString(), dateAsString)
+                            val chatService = ChatService()
+                            chatService.addChat(this, userID, remoteChat)
+                        } else {
+                            // 단톡인 경우
+                            // Server API: 채팅 추가하기
+                            val remoteChat = com.chat_soon_e.re_chat.data.remote.chat.Chat(other.nickname, subText.toString(), fileName, text.toString(), dateAsString)
+                            val chatService = ChatService()
+                            chatService.addChat(this, userID, remoteChat)
+                        }
                     }
                 }
             }

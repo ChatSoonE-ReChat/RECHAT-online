@@ -2,7 +2,6 @@ package com.chat_soon_e.re_chat.data.remote.chat
 
 import android.util.Log
 import com.chat_soon_e.re_chat.ApplicationClass.Companion.retrofit
-import com.chat_soon_e.re_chat.data.entities.ChatList
 import com.chat_soon_e.re_chat.ui.view.*
 
 import retrofit2.Call

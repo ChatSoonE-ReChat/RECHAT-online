@@ -3,8 +3,6 @@ package com.chat_soon_e.re_chat.data.remote.folder
 import android.util.Log
 import retrofit2.Callback
 import com.chat_soon_e.re_chat.ApplicationClass.Companion.retrofit
-import com.chat_soon_e.re_chat.data.entities.ChatList
-import com.chat_soon_e.re_chat.data.entities.Folder
 import com.chat_soon_e.re_chat.ui.view.*
 import retrofit2.Call
 import retrofit2.Response
@@ -31,7 +29,7 @@ class FolderService {
                                 val jsonElement = jsonArray.get(i)
                                 val folderName = jsonElement.asJsonObject.get("folder_name").asString
                                 val folderImg = if(jsonElement.asJsonObject.get("folderImg").isJsonNull) null else jsonElement.asJsonObject.get("folderImg").asString
-
+                                val folderIdx=jsonElement.asJsonObject.get("folderIdx").asInt
                                 Log.d(tag, "folderImg: ${folderImg.isNullOrEmpty()}")
                                 Log.d(tag, "folderImg: $folderImg")
 

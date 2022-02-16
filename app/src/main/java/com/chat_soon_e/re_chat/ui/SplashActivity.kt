@@ -11,12 +11,9 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import com.chat_soon_e.re_chat.ApplicationClass.Companion.ACTIVE
-import com.chat_soon_e.re_chat.ApplicationClass.Companion.DELETED
 import com.chat_soon_e.re_chat.ApplicationClass.Companion.mSharedPreferences
-import com.chat_soon_e.re_chat.data.entities.User
 import com.chat_soon_e.re_chat.data.local.AppDatabase
 import com.chat_soon_e.re_chat.data.remote.auth.USER_ID
-import com.chat_soon_e.re_chat.data.remote.user.UserService
 import com.chat_soon_e.re_chat.databinding.ActivitySplashBinding
 import com.chat_soon_e.re_chat.ui.ExplainActivity.ExplainActivity
 import com.chat_soon_e.re_chat.ui.view.UserView

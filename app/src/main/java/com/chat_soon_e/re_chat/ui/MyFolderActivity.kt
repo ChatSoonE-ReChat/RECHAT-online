@@ -17,7 +17,6 @@ import androidx.appcompat.widget.SwitchCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.view.GravityCompat
 import com.chat_soon_e.re_chat.R
-import com.chat_soon_e.re_chat.data.entities.Folder
 import com.chat_soon_e.re_chat.data.local.AppDatabase
 import com.chat_soon_e.re_chat.databinding.ActivityMyFolderBinding
 import com.chat_soon_e.re_chat.databinding.ItemMyFolderBinding
@@ -25,7 +24,6 @@ import com.google.android.material.navigation.NavigationView
 import androidx.recyclerview.widget.RecyclerView
 import com.chat_soon_e.re_chat.data.entities.Icon
 import com.chat_soon_e.re_chat.data.remote.folder.FolderList
-import com.chat_soon_e.re_chat.data.remote.folder.FolderService
 import com.chat_soon_e.re_chat.databinding.ItemIconBinding
 import com.chat_soon_e.re_chat.ui.view.*
 import com.chat_soon_e.re_chat.utils.getID

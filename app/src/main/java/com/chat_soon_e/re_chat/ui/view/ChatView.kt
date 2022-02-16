@@ -1,7 +1,7 @@
 package com.chat_soon_e.re_chat.ui.view
 
-import com.chat_soon_e.re_chat.data.entities.ChatList
 import com.chat_soon_e.re_chat.data.remote.chat.BlockedChatList
+import com.chat_soon_e.re_chat.data.remote.chat.ChatList
 import com.chat_soon_e.re_chat.data.remote.chat.FolderContent
 
 // 채팅 추가하기
