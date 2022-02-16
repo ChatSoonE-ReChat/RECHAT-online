@@ -13,10 +13,12 @@ import android.widget.EditText
 import android.widget.PopupMenu
 import android.widget.PopupWindow
 import androidx.appcompat.widget.AppCompatButton
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.RecyclerView
 import com.chat_soon_e.re_chat.R
 import com.chat_soon_e.re_chat.data.local.Icon
 import com.chat_soon_e.re_chat.data.local.AppDatabase
+import com.chat_soon_e.re_chat.data.remote.folder.FolderList
 import com.chat_soon_e.re_chat.data.remote.folder.FolderService
 import com.chat_soon_e.re_chat.data.remote.folder.HiddenFolderList
 import com.chat_soon_e.re_chat.databinding.ActivityHiddenFolderBinding
@@ -47,20 +49,25 @@ class HiddenFolderActivity: BaseActivity<ActivityHiddenFolderBinding>(ActivityHi
         database = AppDatabase.getInstance(this)!!
         folderService = FolderService()
 
-        initFolder()
+        getHiddenFolderListLiveData()
+        initRecyclerView()
+    }
+
+    private fun getHiddenFolderListLiveData() {
+        folderService.getHiddenFolderList(this, userID)
+
+        val hiddenFolderListViewModel = ViewModelProvider(this).get(HiddenFolderListViewModel::class.java)
+        hiddenFolderListViewModel.getHiddenFolderListLiveData(this, userID).observe(this) {
+            hiddenFolderList = it as ArrayList<HiddenFolderList>
+            Log.d(tag, "hiddenFolderList: $hiddenFolderList")
+        }
     }
 
     // 폴더 리스트 초기화
-    private fun initFolder() {
+    private fun initRecyclerView() {
         // RecyclerView 초기화
         hiddenFolderRVAdapter = HiddenFolderRVAdapter(this)
         binding.hiddenFolderListRecyclerView.adapter = hiddenFolderRVAdapter
-
-        // 서버로부터 숨김 폴더 리스트를 받아오는 부분을 추가해야 합니다.
-        folderService.getHiddenFolderList(this, userID)
-//        database.folderDao().getHiddenFolder(userID).observe(this){
-//            hiddenFolderRVAdapter.addFolderList(it as ArrayList<Folder>)
-//        }
 
         hiddenFolderRVAdapter.setMyItemClickListener(object: HiddenFolderRVAdapter.MyItemClickListener {
             // 숨김 폴더 다시 해제하기
@@ -95,6 +102,8 @@ class HiddenFolderActivity: BaseActivity<ActivityHiddenFolderBinding>(ActivityHi
                 changeFolderName(itemHiddenFolderBinding, folderIdx)
             }
         })
+
+        getHiddenFolderListLiveData()
     }
 
     // 이름 바꾸기 팝업 윈도우

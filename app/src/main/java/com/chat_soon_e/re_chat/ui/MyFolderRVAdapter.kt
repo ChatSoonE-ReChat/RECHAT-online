@@ -4,14 +4,15 @@ import android.annotation.SuppressLint
 import android.view.*
 import android.widget.PopupMenu
 import androidx.recyclerview.widget.RecyclerView
+import com.chat_soon_e.re_chat.ApplicationClass.Companion.loadBitmap
 import com.chat_soon_e.re_chat.R
+import com.chat_soon_e.re_chat.data.remote.folder.FolderList
 import com.chat_soon_e.re_chat.databinding.ItemMyFolderBinding
 
 class MyFolderRVAdapter(private val mContext: MyFolderActivity): RecyclerView.Adapter<MyFolderRVAdapter.ViewHolder>() {
-    private val folderList = ArrayList<Folder>()
+    private val folderList = ArrayList<FolderList>()
     private lateinit var popup: PopupMenu
     private lateinit var binding: ItemMyFolderBinding
-    private var currentPosition: Int = 0
 
     // 클릭 인터페이스
     interface MyItemClickListener {
@@ -63,23 +64,23 @@ class MyFolderRVAdapter(private val mContext: MyFolderActivity): RecyclerView.Ad
                 when (item?.itemId) {
                     R.id.popup_folder_edit_menu_1 -> {
                         // 이름 바꾸기
-                        mContext.changeFolderName(holder.binding, folderList[position].idx)
+                        mContext.changeFolderName(holder.binding, folderList[position].folderIdx)
                     }
 
                     R.id.popup_folder_edit_menu_2 -> {
                         // 아이콘 바꾸기
-                        mContext.changeIcon(holder.binding, position, folderList[position].idx)
+                        mContext.changeIcon(holder.binding, position, folderList[position].folderIdx)
                     }
 
                     R.id.popup_folder_edit_menu_3 -> {
                         // 삭제하기
-                        mItemClickListener.onRemoveFolder(folderList[position].idx)
+                        mItemClickListener.onRemoveFolder(folderList[position].folderIdx)
                         removeFolder(position)
                     }
 
                     R.id.popup_folder_edit_menu_4 -> {
                         // 숨기기
-                        mItemClickListener.onHideFolder(folderList[position].idx)
+                        mItemClickListener.onHideFolder(folderList[position].folderIdx)
                         removeFolder(position)
                     }
                 }
@@ -95,7 +96,7 @@ class MyFolderRVAdapter(private val mContext: MyFolderActivity): RecyclerView.Ad
 
     // RecyclerView에 데이터 연결
     @SuppressLint("NotifyDataSetChanged")
-    fun addFolderList(folderList: ArrayList<Folder>) {
+    fun addFolderList(folderList: ArrayList<FolderList>) {
         this.folderList.clear()
         this.folderList.addAll(folderList)
         notifyDataSetChanged()
@@ -109,20 +110,17 @@ class MyFolderRVAdapter(private val mContext: MyFolderActivity): RecyclerView.Ad
         notifyItemRangeChanged(position, itemCount);
     }
 
-    fun getSelectedFolder(position:Int):Folder{
+    fun getSelectedFolder(position:Int): FolderList{
         return folderList[position]
     }
 
     // 뷰홀더
     inner class ViewHolder(val binding: ItemMyFolderBinding) :
         RecyclerView.ViewHolder(binding.root) {
-        fun bind(folder: Folder) {
-//            if(folder.folderImg != null) binding.itemMyFolderIv.setImageBitmap(loadBitmap(folder.folderImg!!, mContext))
-//            else binding.itemMyFolderIv.setImageResource(R.drawable.ic_baseline_folder_24)
-//            binding.itemMyFolderIv.setImageResource(folder.folderImg!!)
+        fun bind(folder: FolderList) {
             binding.itemMyFolderTv.text = folder.folderName
-            binding.itemMyFolderIv.setImageResource(folder.folderImg!!)
-            currentPosition = bindingAdapterPosition
+            if(folder.folderImg != null) binding.itemMyFolderIv.setImageBitmap(loadBitmap(folder.folderImg, mContext))
+            else binding.itemMyFolderIv.setImageResource(R.drawable.folder_default)
         }
     }
 }

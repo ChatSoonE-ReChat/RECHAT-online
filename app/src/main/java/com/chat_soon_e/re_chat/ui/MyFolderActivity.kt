@@ -16,6 +16,8 @@ import androidx.appcompat.widget.AppCompatButton
 import androidx.appcompat.widget.SwitchCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.view.GravityCompat
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import com.chat_soon_e.re_chat.R
 import com.chat_soon_e.re_chat.data.local.AppDatabase
 import com.chat_soon_e.re_chat.databinding.ActivityMyFolderBinding
@@ -24,6 +26,7 @@ import com.google.android.material.navigation.NavigationView
 import androidx.recyclerview.widget.RecyclerView
 import com.chat_soon_e.re_chat.data.local.Icon
 import com.chat_soon_e.re_chat.data.remote.folder.FolderList
+import com.chat_soon_e.re_chat.data.remote.folder.FolderService
 import com.chat_soon_e.re_chat.databinding.ItemIconBinding
 import com.chat_soon_e.re_chat.ui.view.*
 import com.chat_soon_e.re_chat.utils.getID
@@ -31,13 +34,12 @@ import com.google.gson.Gson
 import java.io.ByteArrayOutputStream
 
 class MyFolderActivity: BaseActivity<ActivityMyFolderBinding>(ActivityMyFolderBinding::inflate),
-    NavigationView.OnNavigationItemSelectedListener,
-    FolderListView, ChangeFolderNameView, ChangeFolderIconView, DeleteFolderView, HideFolderView,
-    CreateFolderView {
+    NavigationView.OnNavigationItemSelectedListener, FolderListView, FolderAPIView {
     private lateinit var database: AppDatabase
     private lateinit var folderRVAdapter: MyFolderRVAdapter
     private lateinit var iconRVAdapter: ChangeIconRVAdapter
     private lateinit var mPopupWindow: PopupWindow
+    private lateinit var folderService: FolderService
 
     private var folderList = ArrayList<FolderList>()
     private var iconList = ArrayList<Icon>()
@@ -50,11 +52,25 @@ class MyFolderActivity: BaseActivity<ActivityMyFolderBinding>(ActivityMyFolderBi
     override fun initAfterBinding() {
         Log.d("AlluserIDCheck", "onChatAct $userID")
 
+        folderService = FolderService()
         database = AppDatabase.getInstance(this)!!
         iconList = database.iconDao().getIconList() as ArrayList   // 아이콘 받아오기
-        initRecyclerView()          // 폴더 초기화
+        getFolderListLiveData()     // 폴더 초기화
+        initRecyclerView()
         initDrawerLayout()          // 설정 메뉴창 설정
         initClickListener()         // 여러 click listener 초기화
+    }
+
+    // 폴더 초기화
+    private fun getFolderListLiveData() {
+        // 전체폴더 목록 가져오기 (숨김폴더 제외)
+        folderService.getFolderList(this, userID)
+
+        val folderListViewModel = ViewModelProvider(this).get(FolderListViewModel::class.java)
+        folderListViewModel.getFolderListLiveData(this, userID).observe(this) {
+            Log.d(tag, "folderList: $folderList")
+            folderList = it as ArrayList<FolderList>
+        }
     }
 
     // RecyclerView
@@ -63,8 +79,9 @@ class MyFolderActivity: BaseActivity<ActivityMyFolderBinding>(ActivityMyFolderBi
         folderRVAdapter = MyFolderRVAdapter(this)
         binding.myFolderContent.myFolderFolderListRecyclerView.adapter = folderRVAdapter
 
-        database.folderDao().getFolderList(userID).observe(this){
-            folderRVAdapter.addFolderList(it as ArrayList<Folder>)
+        val folderListViewModel = ViewModelProvider(this).get(FolderListViewModel::class.java)
+        folderListViewModel.getFolderListLiveData(this, userID).observe(this) {
+            folderRVAdapter.addFolderList(it as ArrayList<FolderList>)
         }
 
         // click listener
@@ -97,35 +114,20 @@ class MyFolderActivity: BaseActivity<ActivityMyFolderBinding>(ActivityMyFolderBi
 
             // 폴더 삭제하기
             override fun onRemoveFolder(idx: Int) {
-                database.folderDao().deleteFolder(idx)
-
-//                // Server API: 폴더 삭제하기
-//                val folderService = FolderService()
-//                folderService.deleteFolder(this@MyFolderActivity, userID, idx)
+                folderService.deleteFolder(this@MyFolderActivity, userID, idx)
             }
 
             // 폴더 숨기기
             @SuppressLint("NotifyDataSetChanged")
             override fun onHideFolder(idx: Int) {
-                // 여기서 index를 어떻게 바꿔야 할까?
-                // 숨김 폴더 인덱스를 맨 뒤로 넣는 식으로 해서 폴더 리스트 순서를 바꿔줘야 한다. (데이터베이스 안에)
-                database.folderDao().updateFolderHide(idx)
-                //폴더를 숨긴다. 아마 그러면 데이터가 바뀔것
+                folderService.hideFolder(this@MyFolderActivity, userID, idx)
+                // 폴더를 숨긴다. 아마 그러면 데이터가 바뀔 것
                 folderRVAdapter.notifyDataSetChanged()
-//                val hiddenFolder = database.folderDao().getFolderByIdx(idx)
-//                database.folderDao().deleteFolder(hiddenFolder.idx)
-//                database.folderDao().insert(hiddenFolder)
-
-//                // Server API: 폴더 숨기기
-//                val folderService = FolderService()
-//                folderService.hideFolder(this@MyFolderActivity, userID, idx)
             }
         })
 
-        // RecyclerView와 데이터 연결
-        database.folderDao().getFolderList(userID).observe(this){
-            folderRVAdapter.addFolderList(it as ArrayList<Folder>)
-        }
+        // 원래 여기 LiveData 부분 하나 더 있었는데 위에도 하나 있길래 일단 지움
+        // 만약 오류나거나 제대로 반영이 안 된다면 여기에 추가하면 될 듯
     }
 
     // 설정 메뉴 창을 띄우는 DrawerLayout 초기화
@@ -173,7 +175,6 @@ class MyFolderActivity: BaseActivity<ActivityMyFolderBinding>(ActivityMyFolderBi
             R.id.navi_setting_alarm_item -> {
                 Toast.makeText(this, "알림 설정", Toast.LENGTH_SHORT).show()
             }
-
 
             // 패턴 변경하기
             R.id.navi_setting_pattern_item -> {
@@ -249,13 +250,6 @@ class MyFolderActivity: BaseActivity<ActivityMyFolderBinding>(ActivityMyFolderBi
         }
 
         binding.myFolderContent.myFolderAllChatIv.setOnClickListener {
-//            val spf = this@MyFolderActivity.getSharedPreferences("chatAll", MODE_PRIVATE)
-//            val editor = spf.edit()
-//            editor.putInt("chatAll", -1)
-//            editor.apply()
-//
-//            Log.d("isAllOR", "from btn"+getSharedPreferences("chatAll", MODE_PRIVATE).getInt("chatALl", 0).toString())
-//            startNextActivity(ChatActivity::class.java)
             startNextActivity(MainActivity::class.java)
         }
 
@@ -263,11 +257,9 @@ class MyFolderActivity: BaseActivity<ActivityMyFolderBinding>(ActivityMyFolderBi
         binding.myFolderContent.myFolderCreateNewFolderIv.setOnClickListener {
             // popupFolderBottomMenu()
             // 폴더 생성하기
+            folderService.createFolder(this, userID)
+            getFolderListLiveData()
             setFolderName()
-
-//            // Server API: 폴더 생성하기
-//            val folderService = FolderService()
-//            folderService.createFolder(this, userID)
         }
 
         // 숨김 보관함 목록
@@ -335,20 +327,14 @@ class MyFolderActivity: BaseActivity<ActivityMyFolderBinding>(ActivityMyFolderBi
             text = mPopupWindow.contentView.findViewById<EditText>(R.id.popup_window_change_name_et).text.toString()
             itemBinding.itemMyFolderTv.text = text
 
-//            // Server API: 폴더 이름 바꾸기
-//            val folderService = FolderService()
-//            folderService.changeFolderName(this, userID, folderIdx, text)
-
-            database.folderDao().updateFolderName(folderIdx, text)
+            // 폴더 이름 바꾸기
+            folderService.changeFolderName(this, userID, folderIdx, text)
 
             // 팝업 윈도우 종료
             mPopupWindow.dismiss()
 
             // 뒷배경 원래대로
             binding.myFolderContent.myFolderBackgroundView.visibility = View.INVISIBLE
-        }
-        database.folderDao().getFolderList(userID).observe(this){
-            folderRVAdapter.addFolderList(it as ArrayList<Folder>)
         }
     }
 
@@ -380,9 +366,9 @@ class MyFolderActivity: BaseActivity<ActivityMyFolderBinding>(ActivityMyFolderBi
 
         iconRVAdapter.setMyItemClickListener(object: ChangeIconRVAdapter.MyItemClickListener {
             // 아이콘을 하나 선택했을 경우
-            override fun onIconClick(itemIconBinding: ItemIconBinding, itemPosition: Int) {//해당 파라미터는 아이콘 DB!
+            override fun onIconClick(itemIconBinding: ItemIconBinding, iconPosition: Int) {//해당 파라미터는 아이콘 DB!
                 // 선택한 아이콘으로 폴더 이미지 변경
-                val selectedIcon = iconList[itemPosition]
+                val selectedIcon = iconList[iconPosition]
                 itemBinding.itemMyFolderIv.setImageResource(selectedIcon.iconImage)
 
                 val iconBitmap = BitmapFactory.decodeResource(resources, selectedIcon.iconImage)
@@ -392,25 +378,13 @@ class MyFolderActivity: BaseActivity<ActivityMyFolderBinding>(ActivityMyFolderBi
                 val iconBitmapAsByte = baos.toByteArray()
                 val iconBitmapAsString = Base64.encodeToString(iconBitmapAsByte, Base64.DEFAULT)
 
-//                // Server API: 폴더
-//                val folderService = FolderService()
-//                folderService.changeFolderIcon(this@MyFolderActivity, userID, folderIdx, iconBitmapAsString)
+                // 폴더 아이콘 바꾸기
+                folderService.changeFolderIcon(this@MyFolderActivity, userID, folderIdx, iconBitmapAsString)
 
-                database = AppDatabase.getInstance(this@MyFolderActivity)!!
-
-                // RoomDB 적용
-                database.folderDao().updateFolderIcon(folderIdx, selectedIcon.iconImage)
-
-                database.folderDao().getFolderList(userID).observe(this@MyFolderActivity){
-                    folderRVAdapter.addFolderList(it as ArrayList<Folder>)
-                }
                 // 팝업 윈도우 종료
                 mPopupWindow.dismiss()
             }
         })
-        database.folderDao().getFolderList(userID).observe(this){
-            folderRVAdapter.addFolderList(it as ArrayList<Folder>)
-        }
     }
 
     // 새폴더 이름 설정
@@ -443,9 +417,6 @@ class MyFolderActivity: BaseActivity<ActivityMyFolderBinding>(ActivityMyFolderBi
             // 작성한 폴더 이름을 setFolderIcon 함수로 넘겨준다.
             setFolderIcon(name)
         }
-        database.folderDao().getFolderList(userID).observe(this){
-            folderRVAdapter.addFolderList(it as ArrayList<Folder>)
-        }
     }
 
     // 새폴더 아이콘 설정
@@ -476,9 +447,9 @@ class MyFolderActivity: BaseActivity<ActivityMyFolderBinding>(ActivityMyFolderBi
 
         iconRVAdapter.setMyItemClickListener(object: ChangeIconRVAdapter.MyItemClickListener {
             // 아이콘을 하나 선택했을 경우
-            override fun onIconClick(itemBinding: ItemIconBinding, itemPosition: Int) {
-                val selectedIcon = iconList[itemPosition]
-//                val lastIdx = folderList.size
+            override fun onIconClick(itemIconBinding: ItemIconBinding, iconPosition: Int) {
+                val selectedIcon = iconList[iconPosition]
+
                 val iconBitmap = BitmapFactory.decodeResource(resources, selectedIcon.iconImage)
                 val baos = ByteArrayOutputStream()
                 iconBitmap.compress(Bitmap.CompressFormat.PNG, 70, baos)
@@ -486,19 +457,15 @@ class MyFolderActivity: BaseActivity<ActivityMyFolderBinding>(ActivityMyFolderBi
                 val iconBitmapAsString = Base64.encodeToString(iconBitmapAsByte, Base64.DEFAULT)
 
                 // Bitmap bigPictureBitmap  = BitmapFactory.decodeResource(context.getResources(), R.drawable.i_hero);
-                // 선택한 아이콘과 전달받은 폴더 이름으로 폴더 하나 생성한 후 RoomDB에 적용
-//                val newFolder = Folder( userID, name, iconBitmapAsString)
-                val newFolder = Folder(userID, name, selectedIcon.iconImage)
-                database = AppDatabase.getInstance(this@MyFolderActivity)!!
-                database.folderDao().insert(newFolder)
 
-//                val folderService = FolderService()
-//                folderService.changeFolderName(this@MyFolderActivity, userID, newFolder.idx, name)
-//                folderService.changeFolderIcon(this@MyFolderActivity, userID, newFolder.idx, iconBitmapAsString)
+                val newFolderIdx = folderList.size - 1
 
-                database.folderDao().getFolderList(userID).observe(this@MyFolderActivity){
-                    folderRVAdapter.addFolderList(it as ArrayList<Folder>)
-                }
+                // 폴더 이름 바꾸기
+                folderService.changeFolderName(this@MyFolderActivity, userID, folderList[newFolderIdx].folderIdx, name)
+
+                // 폴더 아이콘 바꾸기
+                folderService.changeFolderIcon(this@MyFolderActivity, userID, folderList[newFolderIdx].folderIdx, iconBitmapAsString)
+
                 // 팝업 윈도우 종료
                 mPopupWindow.dismiss()
             }
@@ -529,57 +496,20 @@ class MyFolderActivity: BaseActivity<ActivityMyFolderBinding>(ActivityMyFolderBi
         }
     }
 
-    override fun onChangeFolderNameSuccess() {
-        Log.d(tag, "onChangeFolderNameSuccess()")
+    override fun onFolderAPISuccess() {
+        Log.d(tag, "onFolderAPISuccess()")
     }
 
-    override fun onChangeFolderNameFailure(code: Int, message: String) {
-        Log.d(tag, "onChagneFolderNameFailure()/code: $code, message: $message")
-    }
-
-    override fun onChangeFolderIconSuccess() {
-        Log.d(tag, "onChangeFolderIconSuccess()")
-    }
-
-    override fun onChangeFolderIconFailure(code: Int, message: String) {
-        Log.d(tag, "onChangeFolderIconFailure()/code: $code, message: $message")
-    }
-
-    override fun onDeleteFolderSuccess() {
-        Log.d(tag, "onDeleteFolderSuccess()")
-    }
-
-    override fun onDeleteFolderFailure(code: Int, message: String) {
-        Log.d(tag, "onDeleteFolderFailure()/code: $code, message: $message")
-    }
-
-    override fun onHideFolderSuccess() {
-        Log.d(tag, "onHideFolderSuccess()")
-    }
-
-    override fun onHideFolderFailure(code: Int, message: String) {
-        Log.d(tag, "onHideFolderFailure()/code: $code, message: $message")
+    override fun onFolderAPIFailure(code: Int, message: String) {
+        Log.d(tag, "onFolderAPIFailure()/code: $code, message: $message")
     }
 
     override fun onFolderListSuccess(folderList: ArrayList<FolderList>) {
-        Log.d(tag, "onHideFolderSuccess()")
-
-//        for(i in 0 until folderList.size) {
-//            database.folderDao().insert(Folder(userID, folderList[i].folderName, folderList[i].folderImg))
-//            this.folderList.add(Folder(userID, folderList[i].folderName, folderList[i].folderImg))
-//        }
-//        folderRVAdapter.addFolderList(this.folderList)
+        Log.d(tag, "onFolderListSuccess()/folderList: $folderList")
+        this.folderList = folderList
     }
 
     override fun onFolderListFailure(code: Int, message: String) {
         Log.d(tag, "onFolderListFailure()/code: $code, message: $message")
-    }
-
-    override fun onCreateFolderSuccess() {
-        Log.d(tag, "onCreateFolderSuccess()")
-    }
-
-    override fun onCreateFolderFailure(code: Int, message: String) {
-        Log.d(tag, "onCreateFolderFailure()/code: $code, message: $message")
     }
 }

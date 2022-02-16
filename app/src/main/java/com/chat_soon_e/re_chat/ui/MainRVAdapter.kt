@@ -14,21 +14,24 @@ import com.chat_soon_e.re_chat.ApplicationClass.Companion.loadBitmap
 import com.chat_soon_e.re_chat.R
 import com.chat_soon_e.re_chat.databinding.ItemChatListChooseBinding
 import com.chat_soon_e.re_chat.databinding.ItemChatListDefaultBinding
-import com.chat_soon_e.re_chat.data.local.AppDatabase
 import com.chat_soon_e.re_chat.data.remote.chat.ChatList
+import com.chat_soon_e.re_chat.data.remote.chat.ChatListViewType
 import com.chat_soon_e.re_chat.data.remote.chat.ChatService
+import com.chat_soon_e.re_chat.ui.view.ChatView
 import com.chat_soon_e.re_chat.utils.getID
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
 
-class MainRVAdapter(private val context: Context, private val mItemClickListener: MyItemClickListener): RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class MainRVAdapter(private val context: Context, private val mItemClickListener: MyItemClickListener): RecyclerView.Adapter<RecyclerView.ViewHolder>(),
+    ChatView {
     private lateinit var chatService: ChatService
 
-    private var chatList = ArrayList<ChatList>()
     private var selectedItemList: SparseBooleanArray = SparseBooleanArray(0)
     private val userID = getID()
     private val tag = "RV/MAIN"
+
+    var chatList = ArrayList<ChatList>()
 
     // 클릭 인터페이스
     interface MyItemClickListener {
@@ -79,17 +82,10 @@ class MainRVAdapter(private val context: Context, private val mItemClickListener
     @SuppressLint("NotifyDataSetChanged")
     fun removeSelectedItemList() {
         // checked 안 된 것들로 교체해서 Activity에는 선택 안 된 것들만 남게 한다.
-        // val newChatList = chatList.filter { chatList -> !(chatList.isChecked as Boolean) }
         val selectedList = chatList.filter{ chatlist-> chatlist.isChecked as Boolean }
-        // chatList = newChatList as ArrayList<ChatList>
         // 선택한 채팅 삭제하기
         for(i in selectedList) {
-            if(i.groupName=="null"){   // 개인톡일 경우
-                database.chatDao().deleteOneChat(i.chatIdx)
-            }
-            else{   // 단체 톡일 경우 chatName인 것들 다 삭제
-                database.chatDao().deleteOrgChat(userID, i.chatIdx)
-            }
+            chatService.deleteChat(this, userID, i.chatIdx)
         }
         notifyDataSetChanged()
     }
@@ -98,17 +94,10 @@ class MainRVAdapter(private val context: Context, private val mItemClickListener
     @SuppressLint("NotifyDataSetChanged")
     fun blockSelectedItemList() {
         // checked 안 된 것들로 교체해서 Activity에는 선택 안 된 것들만 남게 한다.
-        //val newChatList = chatList.filter { chatList -> !(chatList.isChecked as Boolean) }
         val selectedList = chatList.filter{ chatlist-> chatlist.isChecked as Boolean }
-        //chatList = newChatList as ArrayList<ChatList>
-        // DB 업데이트
+        // 선택한 채팅목록/유저 차단하기
         for(i in selectedList) {
-            if(i.groupName=="null"||i.groupName==null){   // 개인톡일 경우
-                i.nickName?.let { database.chatDao().blockOneChat(userID, it) }
-            }
-            else{   // 단체 톡일 경우 chatName인 것들 다 삭제
-                database.chatDao().blockOrgChat(userID, i.groupName!!)
-            }
+            chatService.block(this, userID, i.chatName, i.groupName)
         }
         notifyDataSetChanged()
     }
@@ -199,9 +188,9 @@ class MainRVAdapter(private val context: Context, private val mItemClickListener
             if(chat.profileImg != null && chat.profileImg!!.isNotEmpty() && chat.groupName != null ) binding.itemChatListProfileIv.setImageBitmap(loadBitmap(chat.profileImg!!, context))
             else if(chat.groupName !=null || chat.groupName!="null") binding.itemChatListProfileIv.setImageResource(R.drawable.ic_profile_black_no_circle)
 
-            binding.itemChatListNameTv.text = chat.nickName
-            binding.itemChatListContentTv.text = chat.message
-            binding.itemChatListDateTimeTv.text = convertDate(chat.postTime)
+            binding.itemChatListNameTv.text = chat.chatName
+            binding.itemChatListContentTv.text = chat.latestMessage
+            binding.itemChatListDateTimeTv.text = convertDate(chat.latestTime)
 
             Log.d(tag, "bind()/isNew: ${chat.isNew}")
 
@@ -227,9 +216,9 @@ class MainRVAdapter(private val context: Context, private val mItemClickListener
         fun bind(chat: ChatList) {
             if(chat.profileImg != null && chat.profileImg!!.isNotEmpty() && chat.groupName != null ) binding.itemChatListProfileIv.setImageBitmap(loadBitmap(chat.profileImg!!, context))
             else if(chat.groupName !=null || chat.groupName!="null") binding.itemChatListProfileIv.setImageResource(R.drawable.ic_profile_black_no_circle)
-            binding.itemChatListNameTv.text = chat.nickName
-            binding.itemChatListContentTv.text = chat.message
-            binding.itemChatListDateTimeTv.text = convertDate(chat.postTime)
+            binding.itemChatListNameTv.text = chat.chatName
+            binding.itemChatListContentTv.text = chat.latestMessage
+            binding.itemChatListDateTimeTv.text = convertDate(chat.latestTime)
         }
     }
 
@@ -261,27 +250,11 @@ class MainRVAdapter(private val context: Context, private val mItemClickListener
         return str
     }
 
-//    @RequiresApi(Build.VERSION_CODES.O)
-//    private fun dateToString(date:Date):String{
-//        // 오늘이 아니라면 날짜만
-//        var str=""
-//        val today=Date()
-//        if(date.year == today.year && date.month == today.month && date.date==today.date){
-//            val time = SimpleDateFormat("a hh:mm")
-//            str= time.format(date).toString()
-//        } else{
-//            // simpleDateFormat은 thread에 안전하지 않습니다.
-//            // DateTimeFormatter을 사용합시다. 아! Date를 LocalDate로도 바꿔야합니다!
-//            // val time_formatter=DateTimeFormatter.ofPattern("MM월 dd일")
-//            // date.format(time_formatter)
-//            val time = SimpleDateFormat("M월 d일")
-//            time.format(dateAsDate).toString()
-//        }
-//
-//        Log.d(tag, "str: $str")
-//            val time = SimpleDateFormat("MM월 DD일")
-//            str=time.format(date).toString()
-//        }
-//        return str
-//    }
+    override fun onChatSuccess() {
+        Log.d(tag, "onChatSuccess()")
+    }
+
+    override fun onChatFailure(code: Int, message: String) {
+        Log.d(tag, "onChatFailure()/code: $code, message: $message")
+    }
 }

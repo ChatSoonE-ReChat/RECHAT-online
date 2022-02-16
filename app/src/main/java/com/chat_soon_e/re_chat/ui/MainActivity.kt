@@ -131,8 +131,8 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
 
         val folderListViewModel = ViewModelProvider(this).get(FolderListViewModel::class.java)
         folderListViewModel.getFolderListLiveData(this, userID).observe(this) {
-            Log.d(tag, "folderList: $folderList")
             folderList = it as ArrayList<FolderList>
+            Log.d(tag, "folderList: $folderList")
         }
     }
 
@@ -173,17 +173,22 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
                 editor.putInt("chatAll", 1)
                 editor.apply()
 
+                // 갠톡 or 단톡 채팅 가져와야 되는 부분
                 val intent = Intent(this@MainActivity, ChatActivity::class.java)
                 // intent.putExtra("chatListJson", chatJson)
-                intent.putExtra("chatListJson", chat)
+                intent.putExtra("chatListJson", arrayOf(chat))
                 startActivity(intent)
 
                 mainRVAdapter.clearSelectedItemList()
 
                 // 눌렀을 경우 확인한 게 되므로 isNew = false(0)이 된다.
                 val database = AppDatabase.getInstance(this@MainActivity)!!
-                database.chatDao().updateIsNew(chatList[position].chatIdx, 0)
-                database.chatListDao().updateIsNew(chatList[position].chatIdx, 0)
+
+                // isNew를 어떻게 처리해야 할까?
+                // 서버 API가 따로 필요하지 않을까?
+                for(i in chatList) {
+                    if(i.chatIdx == chat.chatIdx) i.isNew = 0
+                }
             }
         })
 
