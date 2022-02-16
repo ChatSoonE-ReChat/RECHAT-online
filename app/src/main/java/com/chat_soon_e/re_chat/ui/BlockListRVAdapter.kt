@@ -11,7 +11,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.chat_soon_e.re_chat.ApplicationClass
 import com.chat_soon_e.re_chat.ApplicationClass.Companion.loadBitmap
 import com.chat_soon_e.re_chat.R
-import com.chat_soon_e.re_chat.data.entities.ChatList
 import com.chat_soon_e.re_chat.data.remote.chat.BlockedChatList
 import com.chat_soon_e.re_chat.databinding.ItemBlockBinding
 import com.chat_soon_e.re_chat.databinding.ItemChatBinding

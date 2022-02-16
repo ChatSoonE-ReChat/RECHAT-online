@@ -9,6 +9,7 @@ import android.util.Log
 import android.view.*
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
+import android.widget.PopupMenu
 import android.widget.PopupWindow
 import androidx.activity.viewModels
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -20,11 +21,17 @@ import com.chat_soon_e.re_chat.data.local.AppDatabase
 import com.chat_soon_e.re_chat.databinding.ActivityChatBinding
 import com.chat_soon_e.re_chat.utils.getID
 import com.chat_soon_e.re_chat.databinding.ItemFolderListBinding
+import android.content.Intent
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DiffUtil
 import com.chat_soon_e.re_chat.data.remote.chat.ChatList
 import com.chat_soon_e.re_chat.data.remote.chat.ChatService
 import com.chat_soon_e.re_chat.data.remote.folder.FolderList
 import com.chat_soon_e.re_chat.data.remote.folder.FolderService
+import com.chat_soon_e.re_chat.databinding.ItemChatBinding
+import com.chat_soon_e.re_chat.ui.ViewModel.ChatTypeViewModel
+import com.chat_soon_e.re_chat.ui.ViewModel.ChatViewModel
+import com.chat_soon_e.re_chat.ui.ViewModel.FolderListViewModel
 import com.chat_soon_e.re_chat.ui.view.ChatView
 import com.chat_soon_e.re_chat.ui.view.FolderListView
 import com.chat_soon_e.re_chat.ui.view.GetChatView
@@ -32,14 +39,14 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 //채팅의 폴더 리스트
-class ChatActivity : BaseActivity<ActivityChatBinding>(ActivityChatBinding::inflate), ChatView, GetChatView, FolderListView {
+class ChatActivity : BaseActivity<ActivityChatBinding>(ActivityChatBinding::inflate),ChatView,GetChatView, FolderListView {
     private var isFabOpen = false    // FAB(FloatingActionButton)가 열렸는지 체크해주는 변수
     private lateinit var fabOpen: Animation
     private lateinit var fabClose: Animation
     private lateinit var database: AppDatabase
     private var folderList = ArrayList<FolderList>()
     private lateinit var chatRVAdapter: ChatRVAdapter
-    private val chatViewModel: ChatViewModel by viewModels()
+    private val chatViewTypeModel: ChatTypeViewModel by viewModels()
     private lateinit var mPopupWindow: PopupWindow
     private var chatList = ArrayList<ChatList>()
     private lateinit var chatListData: ChatList
@@ -66,7 +73,7 @@ class ChatActivity : BaseActivity<ActivityChatBinding>(ActivityChatBinding::infl
 
     // RecyclerView
     private fun initRecyclerView() {
-        chatService=ChatService()
+
         val size = windowManager.currentWindowMetricsPointCompat()
         database = AppDatabase.getInstance(this)!!
 
@@ -85,6 +92,7 @@ class ChatActivity : BaseActivity<ActivityChatBinding>(ActivityChatBinding::infl
                 for(i in selectedList){
                     chatService.deleteChat(this@ChatActivity, userID, i)
                 }
+                // 하고나서 liveData 를 어떻게 ?? ================== 해결해야 할 부분
          }
 
             // 선택 모드
@@ -95,7 +103,7 @@ class ChatActivity : BaseActivity<ActivityChatBinding>(ActivityChatBinding::infl
             }
         })
 
-        chatViewModel.mode.observe(this) {
+        chatViewTypeModel.mode.observe(this) {
             if (it == 0) {
                 // 일반 모드
                 chatRVAdapter.clearSelectedItemList()
@@ -112,9 +120,14 @@ class ChatActivity : BaseActivity<ActivityChatBinding>(ActivityChatBinding::infl
         // 어댑터 연결
         binding.chatChatRecyclerView.adapter = chatRVAdapter
 
+        // ViewModel 을 이용한 리스트 초기화
+        val chatViewModel=ViewModelProvider(this).get(ChatViewModel::class.java)
+        chatViewModel.getChatLiveData(this, userID, chatListData.chatIdx, chatListData.groupName).observe(this) {
+            chatRVAdapter.addItem(it)//끝?
+        }
         // 서버로부터 데이터 받기
-        val chatService=ChatService()
-        chatService.getChat(this, userID, chatListData.chatIdx, chatListData.groupName)
+//        val chatService=ChatService()
+//        chatService.getChat(this, userID, chatListData.chatIdx, chatListData.groupName)
 
         // 폴더 선택 모드를 해제하기 위해
         binding.chatCancelFab.setOnClickListener {
@@ -133,7 +146,7 @@ class ChatActivity : BaseActivity<ActivityChatBinding>(ActivityChatBinding::infl
 
             // 일반 모드로
             chatRVAdapter.clearSelectedItemList()
-            chatViewModel.setMode(mode = 0)
+            chatViewTypeModel.setMode(mode = 0)
         }
     }
 
@@ -141,10 +154,10 @@ class ChatActivity : BaseActivity<ActivityChatBinding>(ActivityChatBinding::infl
     private fun initClickListener() {
         // 메인 FAB 버튼 눌렀을 때
         binding.chatMainFab.setOnClickListener {
-            if (chatViewModel.mode.value == 0) {
-                chatViewModel.setMode(mode = 1)
+            if (chatViewTypeModel.mode.value == 0) {
+                chatViewTypeModel.setMode(mode = 1)
             } else {
-                chatViewModel.setMode(mode = 0)
+                chatViewTypeModel.setMode(mode = 0)
             }
             if (isFabOpen) {
                 // fab 버튼이 열려있는 경우 (선택 모드에서 클릭했을 때)
@@ -175,7 +188,7 @@ class ChatActivity : BaseActivity<ActivityChatBinding>(ActivityChatBinding::infl
             if (data != null)
                 chatListData = data
             chatRVAdapter.clearSelectedItemList()
-            chatViewModel.setMode(mode = 0)
+            chatViewTypeModel.setMode(mode = 0)
 
             binding.chatMainFab.setImageResource(R.drawable.navi_center_cloud)
             ObjectAnimator.ofFloat(binding.chatCancelFab, "translationY", 0f).apply { start() }
@@ -189,7 +202,7 @@ class ChatActivity : BaseActivity<ActivityChatBinding>(ActivityChatBinding::infl
 
             // 일반 모드로
             chatRVAdapter.clearSelectedItemList()
-            chatViewModel.setMode(mode = 0)
+            chatViewTypeModel.setMode(mode = 0)
         }
 
         binding.chatBackIv.setOnClickListener {
@@ -219,8 +232,13 @@ class ChatActivity : BaseActivity<ActivityChatBinding>(ActivityChatBinding::infl
     private fun popupWindowToFolderMenu() {
 
         // Server API: 전체폴더 목록 가져오기 (숨김폴더 제외)
-        folderService=FolderService()
-        folderService.getFolderList(this, userID)
+//        folderService=FolderService()
+//        folderService.getFolderList(this, userID)
+        val folderListViewModel=ViewModelProvider(this).get(FolderListViewModel::class.java)
+        folderListViewModel.getFolderListLiveData(this, userID).observe(this) {
+            folderList.clear()
+            folderList.addAll(it)
+        }
 
         // 채팅 폴더 이동시 필요한 폴더 목록 folderList
         // 팝업 윈도우 사이즈를 잘못 맞추면 아이템들이 안 뜨므로 하드 코딩으로 사이즈 조정해주기
@@ -269,11 +287,17 @@ class ChatActivity : BaseActivity<ActivityChatBinding>(ActivityChatBinding::infl
             }
         })
 
+
         // Server API: 전체폴더 목록 가져오기 (숨김폴더 제외)
         // RVAdapter 에 추가
-        folderService.getFolderList(this, userID)
-        if(folderList!=null)
-            folderListRVAdapter.addFolderList(folderList)
+//        folderService.getFolderList(this, userID)
+//        if(folderList!=null)
+//            folderListRVAdapter.addFolderList(folderList)
+
+        // ViewModel을 이용한 folderList 업데이트
+        folderListViewModel.getFolderListLiveData(this, userID).observe(this) {
+            folderListRVAdapter.addFolderList(it as ArrayList<FolderList>)
+        }
     }
 
     // 디바이스 크기에 사이즈를 맞추기 위한 함수
@@ -306,20 +330,19 @@ class ChatActivity : BaseActivity<ActivityChatBinding>(ActivityChatBinding::infl
         }
     }
 
-
     override fun onGetChatFailure(code: Int, message: String) {
         // 실패시
         Log.d(tag, "onGetChatFailure()/code: $code, message: $message")
     }
     override fun onGetChatSuccess(chats: ArrayList<ChatList>) {
         // 성공시
-        chatRVAdapter.addItem(chats)
+        //chatRVAdapter.addItem(chats)
     }
 
     override fun onFolderListSuccess(folderList: ArrayList<FolderList>) {
         // 성공시
-        folderList.clear()
-        folderList.addAll(folderList)
+//        folderList.clear()
+//        folderList.addAll(folderList)
     }
 
     override fun onFolderListFailure(code: Int, message: String) {

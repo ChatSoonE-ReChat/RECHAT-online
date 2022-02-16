@@ -3,6 +3,9 @@ package com.chat_soon_e.re_chat.data.remote.folder
 import android.util.Log
 import retrofit2.Callback
 import com.chat_soon_e.re_chat.ApplicationClass.Companion.retrofit
+import com.chat_soon_e.re_chat.ui.view.FolderAPIView
+import com.chat_soon_e.re_chat.ui.view.FolderListView
+import com.chat_soon_e.re_chat.ui.view.HiddenFolderListView
 import com.chat_soon_e.re_chat.ui.view.*
 import retrofit2.Call
 import retrofit2.Response
@@ -27,13 +30,13 @@ class FolderService {
                             // JsonArray parsing
                             for(i in 0 until jsonArray.size()) {
                                 val jsonElement = jsonArray.get(i)
+                                val folderIdx = jsonElement.asJsonObject.get("folderIdx").asInt
                                 val folderName = jsonElement.asJsonObject.get("folder_name").asString
                                 val folderImg = if(jsonElement.asJsonObject.get("folderImg").isJsonNull) null else jsonElement.asJsonObject.get("folderImg").asString
-                                val folderIdx=jsonElement.asJsonObject.get("folderIdx").asInt
                                 Log.d(tag, "folderImg: ${folderImg.isNullOrEmpty()}")
                                 Log.d(tag, "folderImg: $folderImg")
 
-                                val folder = FolderList(folderName, folderImg)
+                                val folder = FolderList(folderIdx, folderName, folderImg)
                                 folderList.add(folder)
                                 Log.d(tag, "folderList: $folderList")
                             }
@@ -53,7 +56,7 @@ class FolderService {
     }
 
     // 폴더 생성하기
-    fun createFolder(createFolderView: CreateFolderView, userIdx: Long) {
+    fun createFolder(folderView: FolderAPIView, userIdx: Long) {
         val folderService = retrofit.create(FolderRetrofitInterface::class.java)
 
         folderService.createFolder(userIdx).enqueue(object: Callback<FolderResponse> {
@@ -61,20 +64,20 @@ class FolderService {
                 val resp = response.body()!!
 
                 when(resp.code) {
-                    1000 -> createFolderView.onCreateFolderSuccess()
-                    else -> createFolderView.onCreateFolderFailure(resp.code, resp.message)
+                    1000 -> folderView.onFolderAPISuccess()
+                    else -> folderView.onFolderAPIFailure(resp.code, resp.message)
                 }
             }
 
             override fun onFailure(call: Call<FolderResponse>, t: Throwable) {
                 Log.d(tag, t.message.toString())
-                createFolderView.onCreateFolderFailure(400, "네트워크 오류")
+                folderView.onFolderAPIFailure(400, "네트워크 오류")
             }
         })
     }
 
     // 폴더 이름 바꾸기
-    fun changeFolderName(changeFolderNameView: ChangeFolderNameView, userIdx: Long, folderIdx: Int, folderName: String) {
+    fun changeFolderName(folderView: FolderAPIView, userIdx: Long, folderIdx: Int, folderName: String) {
         val folderService = retrofit.create(FolderRetrofitInterface::class.java)
 
         folderService.changeFolderName(userIdx, folderIdx, folderName).enqueue(object: Callback<FolderResponse> {
@@ -82,20 +85,20 @@ class FolderService {
                 val resp = response.body()!!
 
                 when(resp.code) {
-                    1000 -> changeFolderNameView.onChangeFolderNameSuccess()
-                    else -> changeFolderNameView.onChangeFolderNameFailure(resp.code, resp.message)
+                    1000 -> folderView.onFolderAPISuccess()
+                    else -> folderView.onFolderAPIFailure(resp.code, resp.message)
                 }
             }
 
             override fun onFailure(call: Call<FolderResponse>, t: Throwable) {
                 Log.d(tag, t.message.toString())
-                changeFolderNameView.onChangeFolderNameFailure(400, "네트워크 오류")
+                folderView.onFolderAPIFailure(400, "네트워크 오류")
             }
         })
     }
 
     // 폴더 아이콘 바꾸기
-    fun changeFolderIcon(changeFolderIconView: ChangeFolderIconView, userIdx: Long, folderIdx: Int, folderImg: String?) {
+    fun changeFolderIcon(folderView: FolderAPIView, userIdx: Long, folderIdx: Int, folderImg: String?) {
         val folderService = retrofit.create(FolderRetrofitInterface::class.java)
 
         folderService.changeFolerIcon(userIdx, folderIdx, folderImg!!).enqueue(object: Callback<FolderResponse> {
@@ -103,20 +106,20 @@ class FolderService {
                 val resp = response.body()!!
 
                 when(resp.code) {
-                    1000 -> changeFolderIconView.onChangeFolderIconSuccess()
-                    else -> changeFolderIconView.onChangeFolderIconFailure(resp.code, resp.message)
+                    1000 -> folderView.onFolderAPISuccess()
+                    else -> folderView.onFolderAPIFailure(resp.code, resp.message)
                 }
             }
 
             override fun onFailure(call: Call<FolderResponse>, t: Throwable) {
                 Log.d(tag, t.message.toString())
-                changeFolderIconView.onChangeFolderIconFailure(400, "네트워크 오류")
+                folderView.onFolderAPIFailure(400, "네트워크 오류")
             }
         })
     }
 
     // 폴더 삭제하기
-    fun deleteFolder(deleteFolderView: DeleteFolderView, userIdx: Long, folderIdx: Int) {
+    fun deleteFolder(folderView: FolderAPIView, userIdx: Long, folderIdx: Int) {
         val folderService = retrofit.create(FolderRetrofitInterface::class.java)
 
         folderService.deleteFolder(userIdx, folderIdx).enqueue(object: Callback<FolderResponse> {
@@ -124,14 +127,14 @@ class FolderService {
                 val resp = response.body()!!
 
                 when(resp.code) {
-                    1000 -> deleteFolderView.onDeleteFolderSuccess()
-                    else -> deleteFolderView.onDeleteFolderFailure(resp.code, resp.message)
+                    1000 -> folderView.onFolderAPISuccess()
+                    else -> folderView.onFolderAPIFailure(resp.code, resp.message)
                 }
             }
 
             override fun onFailure(call: Call<FolderResponse>, t: Throwable) {
                 Log.d(tag, t.message.toString())
-                deleteFolderView.onDeleteFolderFailure(400, "네트워크 오류")
+                folderView.onFolderAPIFailure(400, "네트워크 오류")
             }
         })
     }
@@ -153,13 +156,14 @@ class FolderService {
                             // JsonArray parsing
                             for(i in 0 until jsonArray.size()) {
                                 val jsonElement = jsonArray.get(i)
+                                val folderIdx = jsonElement.asJsonObject.get("folderIdx").asInt
                                 val folderName = jsonElement.asJsonObject.get("folderName").asString
                                 val folderImg = if(jsonElement.asJsonObject.get("folderImg").isJsonNull) null else jsonElement.asJsonObject.get("folderImg").asString
 
                                 Log.d(tag, "folderImg: ${folderImg.isNullOrEmpty()}")
                                 Log.d(tag, "folderImg: $folderImg")
 
-                                val hiddenFolder = HiddenFolderList(folderName, folderImg)
+                                val hiddenFolder = HiddenFolderList(folderIdx, folderName, folderImg)
                                 hiddenFolderList.add(hiddenFolder)
                                 Log.d(tag, "hiddenFolderList: $hiddenFolderList")
                             }
@@ -179,7 +183,7 @@ class FolderService {
     }
 
     // 폴더 숨기기
-    fun hideFolder(hideFolderView: HideFolderView, userIdx: Long, folderIdx: Int) {
+    fun hideFolder(folderView: FolderAPIView, userIdx: Long, folderIdx: Int) {
         val folderService = retrofit.create(FolderRetrofitInterface::class.java)
 
         folderService.hideFolder(userIdx, folderIdx).enqueue(object: Callback<FolderResponse> {
@@ -187,20 +191,20 @@ class FolderService {
                 val resp = response.body()!!
 
                 when(resp.code) {
-                    1000 -> hideFolderView.onHideFolderSuccess()
-                    else -> hideFolderView.onHideFolderFailure(resp.code, resp.message)
+                    1000 -> folderView.onFolderAPISuccess()
+                    else -> folderView.onFolderAPIFailure(resp.code, resp.message)
                 }
             }
 
             override fun onFailure(call: Call<FolderResponse>, t: Throwable) {
                 Log.d(tag, t.message.toString())
-                hideFolderView.onHideFolderFailure(400, "네트워크 오류")
+                folderView.onFolderAPIFailure(400, "네트워크 오류")
             }
         })
     }
 
     // 숨김 폴더 다시 해제하기
-    fun unhideFolder(unhideFolderView: UnhideFolderView, userIdx: Long, folderIdx: Int) {
+    fun unhideFolder(folderView: FolderAPIView, userIdx: Long, folderIdx: Int) {
         val folderService = retrofit.create(FolderRetrofitInterface::class.java)
 
         folderService.hideFolder(userIdx, folderIdx).enqueue(object: Callback<FolderResponse> {
@@ -208,14 +212,14 @@ class FolderService {
                 val resp = response.body()!!
 
                 when(resp.code) {
-                    1000 -> unhideFolderView.onUnhideFolderSuccess()
-                    else -> unhideFolderView.onUnhideFolderFailure(resp.code, resp.message)
+                    1000 -> folderView.onFolderAPISuccess()
+                    else -> folderView.onFolderAPIFailure(resp.code, resp.message)
                 }
             }
 
             override fun onFailure(call: Call<FolderResponse>, t: Throwable) {
                 Log.d(tag, t.message.toString())
-                unhideFolderView.onUnhideFolderFailure(400, "네트워크 오류")
+                folderView.onFolderAPIFailure(400, "네트워크 오류")
             }
         })
     }

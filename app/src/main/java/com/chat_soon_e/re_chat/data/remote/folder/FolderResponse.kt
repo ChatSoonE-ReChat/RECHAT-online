@@ -21,6 +21,7 @@ data class FolderList(
 
 // 숨김 폴더목록 가져오기
 data class HiddenFolderList(
+    @SerializedName("folderIdx") val folderIdx: Int,
     @SerializedName("folderName") val folderName: String,
     @SerializedName("folderImg") val folderImg: String?
 )

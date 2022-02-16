@@ -13,7 +13,6 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.chat_soon_e.re_chat.ApplicationClass.Companion.loadBitmap
 import com.chat_soon_e.re_chat.R
-import com.chat_soon_e.re_chat.data.entities.*
 import com.chat_soon_e.re_chat.data.local.AppDatabase
 import com.chat_soon_e.re_chat.data.remote.chat.ChatList
 import com.chat_soon_e.re_chat.data.remote.chat.ChatListViewType

@@ -22,7 +22,7 @@ import com.chat_soon_e.re_chat.databinding.ActivityMyFolderBinding
 import com.chat_soon_e.re_chat.databinding.ItemMyFolderBinding
 import com.google.android.material.navigation.NavigationView
 import androidx.recyclerview.widget.RecyclerView
-import com.chat_soon_e.re_chat.data.entities.Icon
+import com.chat_soon_e.re_chat.data.local.Icon
 import com.chat_soon_e.re_chat.data.remote.folder.FolderList
 import com.chat_soon_e.re_chat.databinding.ItemIconBinding
 import com.chat_soon_e.re_chat.ui.view.*
@@ -32,13 +32,14 @@ import java.io.ByteArrayOutputStream
 
 class MyFolderActivity: BaseActivity<ActivityMyFolderBinding>(ActivityMyFolderBinding::inflate),
     NavigationView.OnNavigationItemSelectedListener,
-    FolderListView, ChangeFolderNameView, ChangeFolderIconView, DeleteFolderView, HideFolderView, CreateFolderView{
+    FolderListView, ChangeFolderNameView, ChangeFolderIconView, DeleteFolderView, HideFolderView,
+    CreateFolderView {
     private lateinit var database: AppDatabase
     private lateinit var folderRVAdapter: MyFolderRVAdapter
     private lateinit var iconRVAdapter: ChangeIconRVAdapter
     private lateinit var mPopupWindow: PopupWindow
 
-    private var folderList = ArrayList<Folder>()
+    private var folderList = ArrayList<FolderList>()
     private var iconList = ArrayList<Icon>()
     private val userID = getID()
     private val tag = "ACT/MYFOLDER"

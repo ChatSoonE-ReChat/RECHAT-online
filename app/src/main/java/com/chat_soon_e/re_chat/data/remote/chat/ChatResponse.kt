@@ -15,6 +15,7 @@ data class ChatResponse(
     @SerializedName("result") val result: JsonArray?
 )
 
+
 //채팅 추가하기
 data class Chat(
     @SerializedName("nickname") var chatName: String,

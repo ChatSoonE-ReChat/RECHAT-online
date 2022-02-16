@@ -7,12 +7,17 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.PopupMenu
 import androidx.recyclerview.widget.RecyclerView
+import com.chat_soon_e.re_chat.ApplicationClass.Companion.loadBitmap
 import com.chat_soon_e.re_chat.R
+<<<<<<< HEAD
+=======
+import com.chat_soon_e.re_chat.data.remote.folder.HiddenFolderList
+>>>>>>> 0ea4d26316c344ef4fca88aabaf035355aaecd50
 import com.chat_soon_e.re_chat.databinding.ItemHiddenFolderBinding
 
 class HiddenFolderRVAdapter(private val mContext: HiddenFolderActivity): RecyclerView.Adapter<HiddenFolderRVAdapter.ViewHolder>() {
-    private var currentPosition: Int = 0
-    private val hiddenFolderList = ArrayList<Folder>()
+    // 기존의 Folder RoomDB에서 서버로부터 받은 HiddenFolderList data class로 바꿨습니다.
+    private val hiddenFolderList = ArrayList<HiddenFolderList>()
 
     private lateinit var popupMenu: PopupMenu
     private lateinit var itemHiddenFolderBinding: ItemHiddenFolderBinding
@@ -64,24 +69,24 @@ class HiddenFolderRVAdapter(private val mContext: HiddenFolderActivity): Recycle
             popupMenu.setOnMenuItemClickListener { item ->
                 when (item?.itemId) {
                     R.id.popup_folder_edit_menu_1 -> {
-                        // 이름 바꾸기
-                        mContext.changeFolderName(itemHiddenFolderBinding, hiddenFolderList[position].idx)
+                        // 폴더 이름 바꾸기
+                        mContext.changeFolderName(itemHiddenFolderBinding, hiddenFolderList[position].folderIdx)
                     }
 
                     R.id.popup_folder_edit_menu_2 -> {
-                        // 아이콘 바꾸기
-                        mContext.changeIcon(itemHiddenFolderBinding, position, hiddenFolderList)
+                        // 폴더 아이콘 바꾸기
+                        mContext.changeIcon(itemHiddenFolderBinding, hiddenFolderList[position].folderIdx)
                     }
 
                     R.id.popup_folder_edit_menu_3 -> {
-                        // 삭제하기
-                        mItemClickListener.onRemoveFolder(hiddenFolderList[position].idx)
+                        // 폴더 삭제하기
+                        mItemClickListener.onRemoveFolder(hiddenFolderList[position].folderIdx)
                         removeFolder(position)
                     }
 
                     R.id.popup_folder_edit_menu_4 -> {
-                        // 내폴더로 보내기 (숨김 해제)
-                        mItemClickListener.onShowFolder(hiddenFolderList[position].idx)
+                        // 숨김 폴더 다시 해제하기
+                        mItemClickListener.onShowFolder(hiddenFolderList[position].folderIdx)
                         removeFolder(position)
                     }
                 }
@@ -98,7 +103,7 @@ class HiddenFolderRVAdapter(private val mContext: HiddenFolderActivity): Recycle
 
     // folder list 추가 및 연결
     @SuppressLint("NotifyDataSetChanged")
-    fun addFolderList(folderList: ArrayList<Folder>) {
+    fun addFolderList(folderList: ArrayList<HiddenFolderList>) {
         this.hiddenFolderList.clear()
         this.hiddenFolderList.addAll(folderList)
         notifyDataSetChanged()
@@ -112,18 +117,16 @@ class HiddenFolderRVAdapter(private val mContext: HiddenFolderActivity): Recycle
     }
 
     // 선택된 폴더 객체 반환
-    fun getSelectedFolder(position: Int): Folder {
+    fun getSelectedFolder(position: Int): HiddenFolderList {
         return hiddenFolderList[position]
     }
 
     // 뷰홀더
     inner class ViewHolder(val itemHiddenFolderBinding: ItemHiddenFolderBinding): RecyclerView.ViewHolder(itemHiddenFolderBinding.root) {
-        fun bind(folder: Folder) {
-            currentPosition = bindingAdapterPosition
-            itemHiddenFolderBinding.itemHiddenFolderTv.text = folder.folderName
-            itemHiddenFolderBinding.itemHiddenFolderIv.setImageResource(folder.folderImg!!)
-//            if(folder.folderImg != null) itemHiddenFolderBinding.itemHiddenFolderIv.setImageBitmap(loadBitmap(folder.folderImg!!, mContext))
-//            else itemHiddenFolderBinding.itemHiddenFolderIv.setImageResource(R.drawable.ic_baseline_folder_24)
+        fun bind(hiddenFolder: HiddenFolderList) {
+            itemHiddenFolderBinding.itemHiddenFolderTv.text = hiddenFolder.folderName
+            if(hiddenFolder.folderImg != null) itemHiddenFolderBinding.itemHiddenFolderIv.setImageBitmap(loadBitmap(hiddenFolder.folderImg, mContext))
+            else itemHiddenFolderBinding.itemHiddenFolderIv.setImageResource(R.drawable.folder_cloud_lock)
         }
     }
 }
