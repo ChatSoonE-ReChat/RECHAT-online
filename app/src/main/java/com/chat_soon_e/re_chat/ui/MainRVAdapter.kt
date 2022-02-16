@@ -14,24 +14,25 @@ import com.chat_soon_e.re_chat.ApplicationClass.Companion.loadBitmap
 import com.chat_soon_e.re_chat.R
 import com.chat_soon_e.re_chat.databinding.ItemChatListChooseBinding
 import com.chat_soon_e.re_chat.databinding.ItemChatListDefaultBinding
-import com.chat_soon_e.re_chat.data.entities.ChatList
-import com.chat_soon_e.re_chat.data.entities.ChatListViewType
 import com.chat_soon_e.re_chat.data.local.AppDatabase
+import com.chat_soon_e.re_chat.data.remote.chat.ChatList
+import com.chat_soon_e.re_chat.data.remote.chat.ChatService
 import com.chat_soon_e.re_chat.utils.getID
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
 
 class MainRVAdapter(private val context: Context, private val mItemClickListener: MyItemClickListener): RecyclerView.Adapter<RecyclerView.ViewHolder>() {
-    var chatList = ArrayList<ChatList>()
-    var selectedItemList: SparseBooleanArray = SparseBooleanArray(0)
-    var database = AppDatabase.getInstance(context)!!
+    private lateinit var chatService: ChatService
+
+    private var chatList = ArrayList<ChatList>()
+    private var selectedItemList: SparseBooleanArray = SparseBooleanArray(0)
     private val userID = getID()
     private val tag = "RV/MAIN"
 
     // 클릭 인터페이스
     interface MyItemClickListener {
-        fun onDefaultChatClick(view: View, position: Int,chat:ChatList)
+        fun onDefaultChatClick(view: View, position: Int, chat: ChatList)
         fun onChooseChatClick(view: View, position: Int)
     }
 
@@ -78,10 +79,10 @@ class MainRVAdapter(private val context: Context, private val mItemClickListener
     @SuppressLint("NotifyDataSetChanged")
     fun removeSelectedItemList() {
         // checked 안 된 것들로 교체해서 Activity에는 선택 안 된 것들만 남게 한다.
-        //val newChatList = chatList.filter { chatList -> !(chatList.isChecked as Boolean) }
+        // val newChatList = chatList.filter { chatList -> !(chatList.isChecked as Boolean) }
         val selectedList = chatList.filter{ chatlist-> chatlist.isChecked as Boolean }
-        //chatList = newChatList as ArrayList<ChatList>
-        // DB 업데이트
+        // chatList = newChatList as ArrayList<ChatList>
+        // 선택한 채팅 삭제하기
         for(i in selectedList) {
             if(i.groupName=="null"){   // 개인톡일 경우
                 database.chatDao().deleteOneChat(i.chatIdx)

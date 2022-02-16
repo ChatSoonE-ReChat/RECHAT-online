@@ -5,7 +5,6 @@ import android.view.*
 import android.widget.PopupMenu
 import androidx.recyclerview.widget.RecyclerView
 import com.chat_soon_e.re_chat.R
-import com.chat_soon_e.re_chat.data.entities.Folder
 import com.chat_soon_e.re_chat.databinding.ItemMyFolderBinding
 
 class MyFolderRVAdapter(private val mContext: MyFolderActivity): RecyclerView.Adapter<MyFolderRVAdapter.ViewHolder>() {

@@ -2,7 +2,6 @@ package com.chat_soon_e.re_chat.data.remote.chat
 
 import android.util.Log
 import com.chat_soon_e.re_chat.ApplicationClass.Companion.retrofit
-import com.chat_soon_e.re_chat.data.entities.ChatList
 import com.chat_soon_e.re_chat.ui.view.*
 
 import retrofit2.Call
@@ -59,7 +58,7 @@ class ChatService {
                                 Log.d(tag, "postTime: ${postTime.isNullOrEmpty()}")
                                 Log.d(tag, "postTime: $postTime")
 
-                                val chat = ChatList(chatIdx, nickname, groupName, profileImg, postTime, message, 1)
+                                val chat = ChatList(chatIdx, nickname, profileImg, postTime, message, groupName, 1)
                                    chatList.add(chat)
                                 Log.d(tag, "chatList: $chatList")
                             }
@@ -104,7 +103,7 @@ class ChatService {
                                 val postTime = jsonElement.asJsonObject.get("post_time").asString
                                 val groupName = if(jsonElement.asJsonObject.get("groupName").isJsonNull) null else jsonElement.asJsonObject.get("groupName").asString
 
-                                val chat = ChatList(chatIdx, nickname, groupName, profileImgUrl, postTime, message, 1)
+                                val chat = ChatList(chatIdx, nickname, profileImgUrl, postTime, message, groupName, 1)
                                 chatList.add(chat)
                                 Log.d(tag, "getChat()/chat: $chat")
                                 Log.d(tag, "getChat()/chatList: $chatList")

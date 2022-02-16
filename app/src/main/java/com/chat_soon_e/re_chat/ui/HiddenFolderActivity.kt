@@ -2,8 +2,11 @@ package com.chat_soon_e.re_chat.ui
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Insets
 import android.graphics.Point
+import android.util.Base64
 import android.util.Log
 import android.view.*
 import android.widget.EditText
@@ -12,69 +15,71 @@ import android.widget.PopupWindow
 import androidx.appcompat.widget.AppCompatButton
 import androidx.recyclerview.widget.RecyclerView
 import com.chat_soon_e.re_chat.R
-import com.chat_soon_e.re_chat.data.entities.Folder
-import com.chat_soon_e.re_chat.data.entities.Icon
+import com.chat_soon_e.re_chat.data.local.Icon
 import com.chat_soon_e.re_chat.data.local.AppDatabase
 import com.chat_soon_e.re_chat.data.remote.folder.FolderService
 import com.chat_soon_e.re_chat.data.remote.folder.HiddenFolderList
 import com.chat_soon_e.re_chat.databinding.ActivityHiddenFolderBinding
 import com.chat_soon_e.re_chat.databinding.ItemHiddenFolderBinding
 import com.chat_soon_e.re_chat.databinding.ItemIconBinding
+import com.chat_soon_e.re_chat.ui.view.FolderAPIView
 import com.chat_soon_e.re_chat.ui.view.HiddenFolderListView
-import com.chat_soon_e.re_chat.ui.view.UnhideFolderView
 import com.chat_soon_e.re_chat.utils.getID
 import com.google.gson.Gson
+import java.io.ByteArrayOutputStream
 
-class HiddenFolderActivity: BaseActivity<ActivityHiddenFolderBinding>(ActivityHiddenFolderBinding::inflate) {
-    private var iconList = ArrayList<Icon>()
-
+class HiddenFolderActivity: BaseActivity<ActivityHiddenFolderBinding>(ActivityHiddenFolderBinding::inflate),
+    HiddenFolderListView, FolderAPIView {
     private lateinit var database: AppDatabase
     private lateinit var hiddenFolderRVAdapter: HiddenFolderRVAdapter
     private lateinit var iconRVAdapter: ChangeIconRVAdapter
     private lateinit var mPopupWindow: PopupWindow
+    private lateinit var folderService: FolderService
 
-    private var hiddenFolderList = ArrayList<Folder>()
+    // 기존 Folder RoomDB 대신 서버로부터 받은 HiddenFolderList data class를 사용하도록 했습니다.
+    private var hiddenFolderList = ArrayList<HiddenFolderList>()
     private val tag = "ACT/HIDDEN-FOLDER"
-    private val userID=getID()
+    private val userID = getID()
+    private var iconList = ArrayList<Icon>()
 
     override fun initAfterBinding() {
-        Log.d("AlluserIDCheck", "onChatAct $userID")
+        Log.d(tag, "user id: $userID")
+        database = AppDatabase.getInstance(this)!!
+        folderService = FolderService()
 
         initFolder()
-        initClickListener()
     }
 
     // 폴더 리스트 초기화
     private fun initFolder() {
-        database = AppDatabase.getInstance(this)!!
-
         // RecyclerView 초기화
         hiddenFolderRVAdapter = HiddenFolderRVAdapter(this)
         binding.hiddenFolderListRecyclerView.adapter = hiddenFolderRVAdapter
 
-        database.folderDao().getHiddenFolder(userID).observe(this){
-            hiddenFolderRVAdapter.addFolderList(it as ArrayList<Folder>)
-        }
+        // 서버로부터 숨김 폴더 리스트를 받아오는 부분을 추가해야 합니다.
+        folderService.getHiddenFolderList(this, userID)
+//        database.folderDao().getHiddenFolder(userID).observe(this){
+//            hiddenFolderRVAdapter.addFolderList(it as ArrayList<Folder>)
+//        }
 
         hiddenFolderRVAdapter.setMyItemClickListener(object: HiddenFolderRVAdapter.MyItemClickListener {
-            // 보관함으로 보내기
-            // 폴더 상태 HIDDEN -> ACTIVE
+            // 숨김 폴더 다시 해제하기
             override fun onShowFolder(folderIdx: Int) {
-                database.folderDao().updateFolderUnHide(folderIdx)
+                folderService.unhideFolder(this@HiddenFolderActivity, userID, folderIdx)
             }
 
-            // 폴더 삭제
-            // 폴더 상태를 HIDDEN -> DELETED로 바꿔준다.
+            // 폴더 삭제하기
             override fun onRemoveFolder(folderIdx: Int) {
-                database.folderDao().deleteFolder(folderIdx)
+                folderService.deleteFolder(this@HiddenFolderActivity, userID, folderIdx)
             }
 
             // 폴더 클릭 시 이동
             override fun onFolderClick(view: View, position: Int) {
+                // 선택한 폴더의 포지션을 가져와서
                 val selectedFolder = hiddenFolderRVAdapter.getSelectedFolder(position)
                 val selectedFolderJson = Gson().toJson(selectedFolder)
 
-                // 폴더 정보 보내기
+                // FolderContentActivity로 해당 폴더 정보 보내기
                 val intent = Intent(this@HiddenFolderActivity, FolderContentActivity::class.java)
                 intent.putExtra("folderData", selectedFolderJson)
                 startActivity(intent)
@@ -90,15 +95,6 @@ class HiddenFolderActivity: BaseActivity<ActivityHiddenFolderBinding>(ActivityHi
                 changeFolderName(itemHiddenFolderBinding, folderIdx)
             }
         })
-    }
-
-    // 클릭 리스너 초기화
-    private fun initClickListener() {
-        // 내폴더 아이콘 눌렀을 때
-//        binding.hiddenFolderMyFolderIv.setOnClickListener {
-////            startNextActivity(MyFolderActivity::class.java)
-//            finish()
-//        }
     }
 
     // 이름 바꾸기 팝업 윈도우
@@ -128,14 +124,16 @@ class HiddenFolderActivity: BaseActivity<ActivityHiddenFolderBinding>(ActivityHi
             // 바뀐 폴더 이름을 뷰와 RoomDB에 각각 적용해준다.
             text = mPopupWindow.contentView.findViewById<EditText>(R.id.popup_window_change_name_et).text.toString()
             itemHiddenFolderBinding.itemHiddenFolderTv.text = text
-            database.folderDao().updateFolderName(folderIdx,text)
+
+            // 폴더 이름 바꾸기
+            folderService.changeFolderName(this@HiddenFolderActivity, userID, folderIdx, text)
             mPopupWindow.dismiss()  // 팝업 윈도우 종료
         }
     }
 
     // 아이콘 바꾸기 팝업 윈도우
     @SuppressLint("InflateParams")
-    fun changeIcon(itemHiddenFolderBinding: ItemHiddenFolderBinding, position: Int, folderListFromAdapter: ArrayList<Folder>) {
+    fun changeIcon(itemHiddenFolderBinding: ItemHiddenFolderBinding, folderIdx:Int) {
         val size = windowManager.currentWindowMetricsPointCompat()
         val width = (size.x * 0.8f).toInt()
         val height = (size.y * 0.6f).toInt()
@@ -155,6 +153,7 @@ class HiddenFolderActivity: BaseActivity<ActivityHiddenFolderBinding>(ActivityHi
         iconList = database.iconDao().getIconList() as ArrayList
         iconRVAdapter = ChangeIconRVAdapter(iconList)
         popupView.findViewById<RecyclerView>(R.id.popup_window_change_icon_recycler_view).adapter = iconRVAdapter
+
         iconRVAdapter.setMyItemClickListener(object: ChangeIconRVAdapter.MyItemClickListener {
             // 아이콘을 선택했을 경우
             override fun onIconClick(itemIconBinding: ItemIconBinding, iconPosition: Int) {//icon 포지션
@@ -162,8 +161,15 @@ class HiddenFolderActivity: BaseActivity<ActivityHiddenFolderBinding>(ActivityHi
                 val selectedIcon = iconList[iconPosition]
                 itemHiddenFolderBinding.itemHiddenFolderIv.setImageResource(selectedIcon.iconImage)
 
-                database.folderDao().updateFolderIcon(folderListFromAdapter[position].idx, selectedIcon.iconImage)
+                val iconBitmap = BitmapFactory.decodeResource(resources, selectedIcon.iconImage)
+                val baos = ByteArrayOutputStream()
+                iconBitmap.compress(Bitmap.CompressFormat.PNG, 70, baos)
 
+                val iconBitmapAsByte = baos.toByteArray()
+                val iconBitmapAsString = Base64.encodeToString(iconBitmapAsByte, Base64.DEFAULT)
+
+                // 폴더 아이콘 바꾸기
+                folderService.changeFolderIcon(this@HiddenFolderActivity, userID, folderIdx, iconBitmapAsString)
                 mPopupWindow.dismiss()  // 팝업 윈도우 종료
             }
         })
@@ -187,13 +193,40 @@ class HiddenFolderActivity: BaseActivity<ActivityHiddenFolderBinding>(ActivityHi
         }
     }
 
+    // 팝업 윈도우 종료 시
     inner class PopupWindowDismissListener(): PopupWindow.OnDismissListener {
         override fun onDismiss() {
             binding.hiddenFolderBackgroundView.visibility = View.INVISIBLE
         }
     }
 
+    // 뒤로 가기 버튼 클릭 시
     override fun onBackPressed() {
         finish()
+    }
+
+    // 숨김 폴더목록 가져오기 성공했을 때
+    override fun onHiddenFolderListSuccess(hiddenFolderList: ArrayList<HiddenFolderList>) {
+        Log.d(tag, "onHiddenFolderListSuccesS()")
+        this.hiddenFolderList = hiddenFolderList
+    }
+
+    // 숨김 폴더목록 가져오기 실패했을 때
+    override fun onHiddenFolderListFailure(code: Int, message: String) {
+        Log.d(tag, "code: $code, message: $message")
+
+        // 사용자에게 서버와의 네트워크가 불안정하다는 것을 알려주는 팝업창 같은 걸 띄우는 게 어떨까?
+    }
+
+    // folder API 성공했을 때
+    override fun onFolderAPISuccess() {
+        Log.d(tag, "onFolderAPISuccess()")
+    }
+
+    // folder API 실패했을 때
+    override fun onFolderAPIFailure(code: Int, message: String) {
+        Log.d(tag, "code: $code, messgae: $message")
+
+        // 사용자에게 서버와의 네트워크가 불안정하다는 것을 알려주는 팝업창 같은 걸 띄우는 게 어떨까?
     }
 }

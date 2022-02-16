@@ -1,7 +1,6 @@
 package com.chat_soon_e.re_chat.data.local
 
 import androidx.room.*
-import com.chat_soon_e.re_chat.data.entities.Icon
 
 @Dao
 interface IconDao {

@@ -11,9 +11,7 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import com.chat_soon_e.re_chat.ApplicationClass.Companion.ACTIVE
-import com.chat_soon_e.re_chat.ApplicationClass.Companion.DELETED
 import com.chat_soon_e.re_chat.ApplicationClass.Companion.mSharedPreferences
-import com.chat_soon_e.re_chat.data.entities.User
 import com.chat_soon_e.re_chat.data.local.AppDatabase
 import com.chat_soon_e.re_chat.data.remote.auth.USER_ID
 import com.chat_soon_e.re_chat.data.remote.user.UserService
@@ -28,9 +26,7 @@ import com.kakao.sdk.common.model.ClientError
 import com.kakao.sdk.common.model.ClientErrorCause
 import com.kakao.sdk.common.model.KakaoSdkError
 import com.kakao.sdk.user.UserApiClient
-// BaseActivity를 상속받기 때문에 BaseActivity 안에서 onCreate() 실행되면서 자동적으로 뷰 바인딩을 해준다.
-// 따라서 SplashActivity에서는 그 코드를 쓸 필요가 없다.
-// <> Generic: 아직 정의되지 않은 타입을 정의할 때 사용하는데, 여기서는 이 안에 어떤 뷰 바인딩을 할 것인지를 넣어준다.
+
 @SuppressLint("CustomSplashScreen")
 class SplashActivity: AppCompatActivity(), UserView {
     private val tag = "ACT/SPLASH"
@@ -146,72 +142,54 @@ class SplashActivity: AppCompatActivity(), UserView {
         }
     }
 
-    // 로그아웃
-    private fun logout(){
-        UserApiClient.instance.logout { error->
-            if(error!=null)
-                Log.d(tag, "로그아웃 실패")
-            else{
-                val user=AppDatabase.getInstance(this)!!.userDao()
-            }
-        }
-    }
+//    // 로그아웃
+//    private fun logout(){
+//        UserApiClient.instance.logout { error->
+//            if(error!=null)
+//                Log.d(tag, "로그아웃 실패")
+//            else{
+//                val user=AppDatabase.getInstance(this)!!.userDao()
+//            }
+//        }
+//    }
 
-    // 탈퇴: 계정 연결 끊기
-    private fun withdraw() {
-        saveUserInfo("withdraw")
-        UserApiClient.instance.unlink { error ->
-            if (error != null)
-                Log.e(tag, "연결끊기 실패", error)
-            else {
-                Log.d(tag, "연결 끊기 성공")
-            }
-        }
-    }
+//    // 탈퇴: 계정 연결 끊기
+//    private fun withdraw() {
+//        saveUserInfo("withdraw")
+//        UserApiClient.instance.unlink { error ->
+//            if (error != null)
+//                Log.e(tag, "연결끊기 실패", error)
+//            else {
+//                Log.d(tag, "연결 끊기 성공")
+//            }
+//        }
+//    }
 
     // User 정보 업데이트 및 생성
     private fun saveUserInfo(state:String){
         UserApiClient.instance.me { user, error ->
-            if (error != null){
+            if (error != null) {
                 Log.d(tag, "사용자 정보 가져오기 실패")
             } else {
                 if (user != null) {
-                    val database = AppDatabase.getInstance(this)!!
-                    val dao = database.userDao()
-                    if(state == "login"){
-                        // id 암호화(encrypted사용) 후 spf 저장, 일단은 그냥 local 사용해 저장=========================
+                    if(state == "login") {
+                        // id 암호화(encrypted사용) 후 spf 저장
                         USER_ID = user.id
                         saveID(user.id)
-
                         Log.d(tag, "user id: ${user.id}")
-                        // ==================================
-                        val users = dao.getUser(user.id)
-                        if(users == null){
-                            //유저 인포 저장
-                            dao.insert(User(user.id, user.kakaoAccount?.profile?.nickname.toString(), user.kakaoAccount?.email.toString(), ACTIVE))
-//                            val userID = user.id
 
-                            // Server API: 카카오 회원 추가하기
-//                            val kakaoUserIdx = com.chat_soon_e.re_chat.data.remote.user.User(user.id)
-//                            val userService = UserService()
-//                            userService.addKakaoUser(this, kakaoUserIdx)
-//                            Log.d(tag, "Server API: ${user.id}")
-
-                        }else{
-                            if(users.status=="delete")
-                            // 유저 인포 업데이트
-                                dao.update(User(user.id, user.kakaoAccount?.profile?.nickname.toString(), user.kakaoAccount?.email.toString(), ACTIVE))
-                        }
-                    }
-                    // 로그아웃 시
-                    else if(state == "logout") {
+                        // Server API: 카카오 회원 추가하기
+                        val kakaoUserIdx = com.chat_soon_e.re_chat.data.remote.user.User(user.id)
+                        val userService = UserService()
+                        userService.addKakaoUser(this, kakaoUserIdx)
+                        Log.d(tag, "Server API: ${user.id}")
+                    } else if(state == "logout") {
+                        // 로그아웃 시
                         saveID(-1)
-                        //dao.updateStatus(user.id, "inactivate")
-                    }
-                    // 탈퇴 시
-                    else if(state == "withdraw")
+                    } else if(state == "withdraw") {
+                        // 탈퇴 시
                         saveID(-1)
-                    //dao.updateStatus(user.id, "delete")
+                    }
                 }
             }
         }
