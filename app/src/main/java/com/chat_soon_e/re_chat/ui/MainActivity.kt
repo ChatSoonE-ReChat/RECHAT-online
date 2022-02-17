@@ -20,33 +20,30 @@ import androidx.appcompat.app.AppCompatActivity
 import java.util.*
 import kotlin.collections.ArrayList
 import androidx.appcompat.widget.SwitchCompat
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.chat_soon_e.re_chat.ApplicationClass.Companion.HIDDEN
 import com.chat_soon_e.re_chat.R
 import com.chat_soon_e.re_chat.data.local.Icon
 import com.chat_soon_e.re_chat.data.remote.auth.USER_ID
 import com.chat_soon_e.re_chat.data.remote.chat.ChatList
-import com.chat_soon_e.re_chat.data.remote.chat.ChatListViewType
 import com.chat_soon_e.re_chat.data.remote.chat.ChatService
 import com.chat_soon_e.re_chat.data.remote.folder.FolderList
 import com.chat_soon_e.re_chat.data.remote.folder.FolderService
 import com.chat_soon_e.re_chat.ui.view.*
 import com.chat_soon_e.re_chat.databinding.ItemFolderListBinding
-import com.chat_soon_e.re_chat.ui.ViewModel.ChatListViewModel
-import com.chat_soon_e.re_chat.ui.ViewModel.ChatTypeViewModel
-import com.chat_soon_e.re_chat.ui.ViewModel.ChatViewModel
-import com.chat_soon_e.re_chat.ui.ViewModel.FolderListViewModel
+import com.chat_soon_e.re_chat.ui.view_model.ChatListViewModel
+import com.chat_soon_e.re_chat.ui.view_model.ChatTypeViewModel
+import com.chat_soon_e.re_chat.ui.view_model.FolderListViewModel
 import com.chat_soon_e.re_chat.utils.getID
 import com.chat_soon_e.re_chat.utils.permissionGrantred
 import com.google.android.material.navigation.NavigationView
 
-class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatActivity(),
+class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener,
     GetChatListView, ChatView, FolderListView {
     private lateinit var binding: ActivityMainBinding
     private lateinit var database: AppDatabase
     private lateinit var mainRVAdapter: MainRVAdapter
+    private lateinit var folderListRVAdapter: FolderListRVAdapter
     private lateinit var mPopupWindow: PopupWindow
     private lateinit var chatService: ChatService
     private lateinit var folderService: FolderService
@@ -88,7 +85,6 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
 //        }
 
         Log.d(tag, "onStart()/userID: $userID, USER_ID: $USER_ID")
-        getFolderListLiveData()
         initRecyclerView()
         initDrawerLayout()
         initClickListener()
@@ -122,23 +118,26 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
         }
     }
 
-    // 폴더 초기화
-    private fun getFolderListLiveData() {
-        // 전체폴더 목록 가져오기 (숨김폴더 제외)
-        folderService.getFolderList(this, userID)
-
-        // 폴더 초기 세팅 (구르미 하나, 구르미 둘)
-        // 처음 앱을 실행했다는 것을 확인할 수 있으면 폴더 초기 세팅 실행하도록 (어떻게?)
+//    // 폴더 초기화
+//    private fun getFolderListLiveData() {
+//        // 폴더 초기 세팅 (구르미 하나, 구르미 둘)
+//        // 처음 앱을 실행했다는 것을 확인할 수 있으면 폴더 초기 세팅 실행하도록 (어떻게?)
 //        if (folderList.size == 0) {
 //            database.folderDao().insert(Folder(userID, "구르미 하나", R.drawable.folder_default))
 //            database.folderDao().insert(Folder(userID, "구르미 둘", R.drawable.folder_default))
 //        }
 
-        val folderListViewModel = ViewModelProvider(this).get(FolderListViewModel::class.java)
-        folderListViewModel.getFolderListLiveData(this, userID).observe(this) {
-            folderList = it as ArrayList<FolderList>
-            Log.d(tag, "folderList: $folderList")
-        }
+//        val folderListViewModel = ViewModelProvider(this).get(FolderListViewModel::class.java)
+//        folderListViewModel.getFolderListLiveData(this, userID).observe(this) {
+//            folderList = it as ArrayList<FolderList>
+//            Log.d(tag, "folderList: $folderList")
+//        }
+//    }
+
+    private fun initFolder() {
+        // 전체폴더 목록 가져오기 (숨김폴더 제외)
+        folderListRVAdapter = FolderListRVAdapter(this)
+        folderService.getFolderList(this, userID)
     }
 
     private fun getChatListLiveData() {
@@ -180,8 +179,8 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
 
                 // 갠톡 or 단톡 채팅 가져와야 되는 부분
                 val intent = Intent(this@MainActivity, ChatActivity::class.java)
-                // intent.putExtra("chatListJson", chatJson)
-                intent.putExtra("chatListJson", arrayOf(chat))
+//                 intent.putExtra("chatListJson", chatJson)
+                intent.putExtra("chatListJson", chat)
                 startActivity(intent)
 
                 mainRVAdapter.clearSelectedItemList()
@@ -408,7 +407,7 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
 
         // 폴더 이동 선택 모드 클릭시 팝업 메뉴
         binding.mainContent.mainFolderModeIv.setOnClickListener {
-            popupWindowToFolderMenu()
+            initFolder()
         }
 
         // 선택 모드 시
@@ -479,15 +478,15 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
 //        recyclerView.addItemDecoration(dividerItemDecoration)
 
         // RecyclerView 초기화
-        val folderListRVAdapter = FolderListRVAdapter(this@MainActivity)
         val popupFolderList = ArrayList<FolderList>()
 
-        val folderListViewModel = ViewModelProvider(this).get(FolderListViewModel::class.java)
-        folderListViewModel.getFolderListLiveData(this, userID).observe(this) {
-            popupFolderList.addAll(it)
-            folderListRVAdapter.addFolderList(popupFolderList)
-        }
+//        val folderListViewModel = ViewModelProvider(this).get(FolderListViewModel::class.java)
+//        folderListViewModel.getFolderListLiveData(this, userID).observe(this) {
+//            popupFolderList.addAll(it)
+//            folderListRVAdapter.addFolderList(popupFolderList)
+//        }
 
+        folderListRVAdapter.addFolderList(this.folderList)
         recyclerView.adapter = folderListRVAdapter
         folderListRVAdapter.setMyItemClickListener(object :
             FolderListRVAdapter.MyItemClickListener {
@@ -574,7 +573,9 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
 
     override fun onFolderListSuccess(folderList: ArrayList<FolderList>) {
         Log.d(tag, "onFolderListSuccess()/folderList: $folderList")
-        this.folderList = folderList
+        this.folderList.clear()
+        this.folderList.addAll(folderList)
+        popupWindowToFolderMenu()
     }
 
     override fun onFolderListFailure(code: Int, message: String) {

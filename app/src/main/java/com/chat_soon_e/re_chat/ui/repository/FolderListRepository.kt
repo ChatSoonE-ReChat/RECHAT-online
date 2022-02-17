@@ -12,7 +12,7 @@ import retrofit2.Callback
 import retrofit2.Response
 
 class FolderListRepository {
-    private lateinit var folderListLiveData: MutableLiveData<List<FolderList>>
+    private var folderListLiveData = MutableLiveData<List<FolderList>>()
     private val tag = "REPO/FOLDER-LIST"
 
     fun getFolderList(folderListView: FolderListView, userIdx: Long): MutableLiveData<List<FolderList>> {
@@ -32,7 +32,7 @@ class FolderListRepository {
                             for(i in 0 until jsonArray.size()) {
                                 val jsonElement = jsonArray.get(i)
                                 val folderIdx = jsonElement.asJsonObject.get("folderIdx").asInt
-                                val folderName = jsonElement.asJsonObject.get("folder_name").asString
+                                val folderName = jsonElement.asJsonObject.get("folderName").asString
                                 val folderImg = if(jsonElement.asJsonObject.get("folderImg").isJsonNull) null else jsonElement.asJsonObject.get("folderImg").asString
 
                                 Log.d(tag, "folderImg: ${folderImg.isNullOrEmpty()}")

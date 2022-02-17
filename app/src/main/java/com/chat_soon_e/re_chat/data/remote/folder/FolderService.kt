@@ -31,7 +31,7 @@ class FolderService {
                             for(i in 0 until jsonArray.size()) {
                                 val jsonElement = jsonArray.get(i)
                                 val folderIdx = jsonElement.asJsonObject.get("folderIdx").asInt
-                                val folderName = jsonElement.asJsonObject.get("folder_name").asString
+                                val folderName = jsonElement.asJsonObject.get("folderName").asString
                                 val folderImg = if(jsonElement.asJsonObject.get("folderImg").isJsonNull) null else jsonElement.asJsonObject.get("folderImg").asString
                                 Log.d(tag, "folderImg: ${folderImg.isNullOrEmpty()}")
                                 Log.d(tag, "folderImg: $folderImg")
@@ -77,11 +77,13 @@ class FolderService {
     }
 
     // 폴더 이름 바꾸기
-    fun changeFolderName(folderView: FolderAPIView, userIdx: Long, folderIdx: Int, folderName: String) {
+    fun changeFolderName(folderView: FolderAPIView, userIdx: Long, folderIdx: Int, folder: FolderList) {
         val folderService = retrofit.create(FolderRetrofitInterface::class.java)
 
-        folderService.changeFolderName(userIdx, folderIdx, folderName).enqueue(object: Callback<FolderResponse> {
+        folderService.changeFolderName(userIdx, folderIdx, folder).enqueue(object: Callback<FolderResponse> {
             override fun onResponse(call: Call<FolderResponse>, response: Response<FolderResponse>) {
+                Log.d(tag, "changeFolderName()/onResponse()/userIdx: $userIdx, folderIdx: $folderIdx, folder: $folder")
+                Log.d(tag, "changeFolderName()/onResponse()/response.body(): ${response.body()}")
                 val resp = response.body()!!
 
                 when(resp.code) {
@@ -98,10 +100,10 @@ class FolderService {
     }
 
     // 폴더 아이콘 바꾸기
-    fun changeFolderIcon(folderView: FolderAPIView, userIdx: Long, folderIdx: Int, folderImg: String?) {
+    fun changeFolderIcon(folderView: FolderAPIView, userIdx: Long, folderIdx: Int, folder: FolderList) {
         val folderService = retrofit.create(FolderRetrofitInterface::class.java)
 
-        folderService.changeFolerIcon(userIdx, folderIdx, folderImg!!).enqueue(object: Callback<FolderResponse> {
+        folderService.changeFolerIcon(userIdx, folderIdx, folder).enqueue(object: Callback<FolderResponse> {
             override fun onResponse(call: Call<FolderResponse>, response: Response<FolderResponse>) {
                 val resp = response.body()!!
 
@@ -141,7 +143,7 @@ class FolderService {
 
     // 숨김 폴더목록 가져오기
     fun getHiddenFolderList(hiddenFolderListView: HiddenFolderListView, userIdx: Long) {
-        val hiddenFolderList = ArrayList<HiddenFolderList>()
+        val hiddenFolderList = ArrayList<FolderList>()
         val folderService = retrofit.create(FolderRetrofitInterface::class.java)
 
         folderService.getHiddenFolderList(userIdx).enqueue(object: Callback<FolderResponse> {
@@ -163,7 +165,7 @@ class FolderService {
                                 Log.d(tag, "folderImg: ${folderImg.isNullOrEmpty()}")
                                 Log.d(tag, "folderImg: $folderImg")
 
-                                val hiddenFolder = HiddenFolderList(folderIdx, folderName, folderImg)
+                                val hiddenFolder = FolderList(folderIdx, folderName, folderImg)
                                 hiddenFolderList.add(hiddenFolder)
                                 Log.d(tag, "hiddenFolderList: $hiddenFolderList")
                             }
@@ -207,7 +209,7 @@ class FolderService {
     fun unhideFolder(folderView: FolderAPIView, userIdx: Long, folderIdx: Int) {
         val folderService = retrofit.create(FolderRetrofitInterface::class.java)
 
-        folderService.hideFolder(userIdx, folderIdx).enqueue(object: Callback<FolderResponse> {
+        folderService.unhideFolder(userIdx, folderIdx).enqueue(object: Callback<FolderResponse> {
             override fun onResponse(call: Call<FolderResponse>, response: Response<FolderResponse>) {
                 val resp = response.body()!!
 

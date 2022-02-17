@@ -1,4 +1,4 @@
-package com.chat_soon_e.re_chat.ui
+package com.chat_soon_e.re_chat.ui.repository
 
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
@@ -6,19 +6,18 @@ import com.chat_soon_e.re_chat.ApplicationClass
 import com.chat_soon_e.re_chat.data.remote.folder.FolderList
 import com.chat_soon_e.re_chat.data.remote.folder.FolderResponse
 import com.chat_soon_e.re_chat.data.remote.folder.FolderRetrofitInterface
-import com.chat_soon_e.re_chat.data.remote.folder.HiddenFolderList
 import com.chat_soon_e.re_chat.ui.view.HiddenFolderListView
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
 class HiddenFolderListRepository {
-    private lateinit var hiddenFolderListLiveData: MutableLiveData<List<HiddenFolderList>>
+    private lateinit var hiddenFolderListLiveData: MutableLiveData<List<FolderList>>
     private val tag = "REPO/HIDDEN-FOLDER-LIST"
 
-    fun getHiddenFolderList(hiddenFolderListView: HiddenFolderListView, userIdx: Long): MutableLiveData<List<HiddenFolderList>> {
+    fun getHiddenFolderList(hiddenFolderListView: HiddenFolderListView, userIdx: Long): MutableLiveData<List<FolderList>> {
         val folderService = ApplicationClass.retrofit.create(FolderRetrofitInterface::class.java)
-        val hiddenFolderList = ArrayList<HiddenFolderList>()
+        val hiddenFolderList = ArrayList<FolderList>()
 
         folderService.getHiddenFolderList(userIdx).enqueue(object: Callback<FolderResponse> {
             override fun onResponse(call: Call<FolderResponse>, response: Response<FolderResponse>) {
@@ -39,7 +38,7 @@ class HiddenFolderListRepository {
                                 Log.d(tag, "folderImg: ${folderImg.isNullOrEmpty()}")
                                 Log.d(tag, "folderImg: $folderImg")
 
-                                val hiddenFolder = HiddenFolderList(folderIdx, folderName, folderImg)
+                                val hiddenFolder = FolderList(folderIdx, folderName, folderImg)
                                 hiddenFolderList.add(hiddenFolder)
                                 Log.d(tag, "hiddenFolderList: $hiddenFolderList")
                             }

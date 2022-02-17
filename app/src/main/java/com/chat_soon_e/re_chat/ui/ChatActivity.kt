@@ -9,29 +9,23 @@ import android.util.Log
 import android.view.*
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
-import android.widget.PopupMenu
 import android.widget.PopupWindow
 import androidx.activity.viewModels
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.chat_soon_e.re_chat.ApplicationClass
 import com.chat_soon_e.re_chat.R
 import com.chat_soon_e.re_chat.data.local.AppDatabase
 import com.chat_soon_e.re_chat.databinding.ActivityChatBinding
 import com.chat_soon_e.re_chat.utils.getID
 import com.chat_soon_e.re_chat.databinding.ItemFolderListBinding
-import android.content.Intent
 import androidx.lifecycle.ViewModelProvider
-import androidx.recyclerview.widget.DiffUtil
 import com.chat_soon_e.re_chat.data.remote.chat.ChatList
 import com.chat_soon_e.re_chat.data.remote.chat.ChatService
 import com.chat_soon_e.re_chat.data.remote.folder.FolderList
 import com.chat_soon_e.re_chat.data.remote.folder.FolderService
-import com.chat_soon_e.re_chat.databinding.ItemChatBinding
-import com.chat_soon_e.re_chat.ui.ViewModel.ChatTypeViewModel
-import com.chat_soon_e.re_chat.ui.ViewModel.ChatViewModel
-import com.chat_soon_e.re_chat.ui.ViewModel.FolderListViewModel
+import com.chat_soon_e.re_chat.ui.view_model.ChatTypeViewModel
+import com.chat_soon_e.re_chat.ui.view_model.ChatViewModel
 import com.chat_soon_e.re_chat.ui.view.ChatView
 import com.chat_soon_e.re_chat.ui.view.FolderListView
 import com.chat_soon_e.re_chat.ui.view.GetChatView
@@ -39,22 +33,24 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 //채팅의 폴더 리스트
-class ChatActivity : BaseActivity<ActivityChatBinding>(ActivityChatBinding::inflate),ChatView,GetChatView, FolderListView {
+class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::inflate),
+    ChatView, GetChatView, FolderListView {
     private var isFabOpen = false    // FAB(FloatingActionButton)가 열렸는지 체크해주는 변수
     private lateinit var fabOpen: Animation
     private lateinit var fabClose: Animation
     private lateinit var database: AppDatabase
-    private var folderList = ArrayList<FolderList>()
     private lateinit var chatRVAdapter: ChatRVAdapter
-    private val chatViewTypeModel: ChatTypeViewModel by viewModels()
-    private lateinit var mPopupWindow: PopupWindow
-    private var chatList = ArrayList<ChatList>()
+    private lateinit var folderListRVAdapter: FolderListRVAdapter
     private lateinit var chatListData: ChatList
+    private lateinit var mPopupWindow: PopupWindow
+    private lateinit var folderService: FolderService
+    private lateinit var chatService: ChatService
+
     private val userID = getID()
     private val tag = "ACT/CHAT"
-
-    private lateinit var folderService:FolderService
-    private lateinit var chatService:ChatService
+    private val chatViewTypeModel: ChatTypeViewModel by viewModels()
+    private var chatList = ArrayList<ChatList>()
+    private var folderList = ArrayList<FolderList>()
 
     override fun initAfterBinding() {
         //initData()
@@ -63,6 +59,12 @@ class ChatActivity : BaseActivity<ActivityChatBinding>(ActivityChatBinding::infl
         initData()
         initRecyclerView()
         initClickListener()
+    }
+
+    private fun initFolder() {
+        // 전체폴더 목록 가져오기 (숨김폴더 제외)
+        folderListRVAdapter = FolderListRVAdapter(this)
+        folderService.getFolderList(this, userID)
     }
 
     // FAB 애니메이션 초기화
@@ -163,7 +165,7 @@ class ChatActivity : BaseActivity<ActivityChatBinding>(ActivityChatBinding::infl
                 // fab 버튼이 열려있는 경우 (선택 모드에서 클릭했을 때)
                 // 폴더로 보내는 팝업창을 띄운다.
                 // 여기서 view는 클릭된 뷰를 의미한다.
-                popupWindowToFolderMenu()
+                initFolder()
             } else {
                 // fab 버튼이 닫혀있는 경우 (일반 모드에서 클릭했을 때)
                 binding.chatMainFab.setImageResource(R.drawable.navi_center_cloud_move)
@@ -230,15 +232,11 @@ class ChatActivity : BaseActivity<ActivityChatBinding>(ActivityChatBinding::infl
     // 폴더로 보내기 팝업 윈도우
     @SuppressLint("InflateParams")
     private fun popupWindowToFolderMenu() {
-
-        // Server API: 전체폴더 목록 가져오기 (숨김폴더 제외)
-//        folderService=FolderService()
-//        folderService.getFolderList(this, userID)
-        val folderListViewModel=ViewModelProvider(this).get(FolderListViewModel::class.java)
-        folderListViewModel.getFolderListLiveData(this, userID).observe(this) {
-            folderList.clear()
-            folderList.addAll(it)
-        }
+//        val folderListViewModel=ViewModelProvider(this).get(FolderListViewModel::class.java)
+//        folderListViewModel.getFolderListLiveData(this, userID).observe(this) {
+//            folderList.clear()
+//            folderList.addAll(it)
+//        }
 
         // 채팅 폴더 이동시 필요한 폴더 목록 folderList
         // 팝업 윈도우 사이즈를 잘못 맞추면 아이템들이 안 뜨므로 하드 코딩으로 사이즈 조정해주기
@@ -268,7 +266,7 @@ class ChatActivity : BaseActivity<ActivityChatBinding>(ActivityChatBinding::infl
 
         // RecyclerView 초기화
         // 더미 데이터와 어댑터 연결
-        val folderListRVAdapter = FolderListRVAdapter(this@ChatActivity)
+        folderListRVAdapter.addFolderList(this.folderList)
         recyclerView.adapter = folderListRVAdapter
         folderListRVAdapter.setMyItemClickListener(object :
             FolderListRVAdapter.MyItemClickListener {
@@ -295,9 +293,11 @@ class ChatActivity : BaseActivity<ActivityChatBinding>(ActivityChatBinding::infl
 //            folderListRVAdapter.addFolderList(folderList)
 
         // ViewModel을 이용한 folderList 업데이트
-        folderListViewModel.getFolderListLiveData(this, userID).observe(this) {
-            folderListRVAdapter.addFolderList(it as ArrayList<FolderList>)
-        }
+        folderService = FolderService()
+        folderService.getFolderList(this, userID)
+//        folderListViewModel.getFolderListLiveData(this, userID).observe(this) {
+//            folderListRVAdapter.addFolderList(it as ArrayList<FolderList>)
+//        }
     }
 
     // 디바이스 크기에 사이즈를 맞추기 위한 함수
@@ -340,9 +340,11 @@ class ChatActivity : BaseActivity<ActivityChatBinding>(ActivityChatBinding::infl
     }
 
     override fun onFolderListSuccess(folderList: ArrayList<FolderList>) {
-        // 성공시
-//        folderList.clear()
-//        folderList.addAll(folderList)
+        // 성공 시
+        Log.d(tag, "onFolderListSuccess()/folderList: $folderList")
+        this.folderList.clear()
+        this.folderList.addAll(folderList)
+        popupWindowToFolderMenu()
     }
 
     override fun onFolderListFailure(code: Int, message: String) {

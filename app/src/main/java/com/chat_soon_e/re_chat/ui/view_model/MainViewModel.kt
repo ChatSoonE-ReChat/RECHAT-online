@@ -1,4 +1,4 @@
-package com.chat_soon_e.re_chat.ui.ViewModel
+package com.chat_soon_e.re_chat.ui.view_model
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -7,12 +7,11 @@ import com.chat_soon_e.re_chat.data.remote.chat.BlockedChatList
 import com.chat_soon_e.re_chat.data.remote.chat.ChatList
 import com.chat_soon_e.re_chat.data.remote.chat.FolderContent
 import com.chat_soon_e.re_chat.data.remote.folder.FolderList
-import com.chat_soon_e.re_chat.data.remote.folder.HiddenFolderList
-import com.chat_soon_e.re_chat.ui.HiddenFolderListRepository
+import com.chat_soon_e.re_chat.ui.repository.HiddenFolderListRepository
 import com.chat_soon_e.re_chat.ui.repository.*
 import com.chat_soon_e.re_chat.ui.view.*
 
-class ChatListViewModel(getChatListView: GetChatListView, userIdx: Long): ViewModel() {
+class ChatListViewModel(): ViewModel() {
     private lateinit var chatListLiveData: MutableLiveData<List<ChatList>>
     private var chatListRepository = ChatListRepository()
 
@@ -32,7 +31,7 @@ class ChatViewModel:ViewModel(){
     }
 }
 
-class FolderListViewModel(getFolderListView: FolderListView, userIdx: Int): ViewModel() {
+class FolderListViewModel(): ViewModel() {
     private lateinit var folderListLiveData: MutableLiveData<List<FolderList>>
     private var folderListRepository = FolderListRepository()
 
@@ -42,7 +41,7 @@ class FolderListViewModel(getFolderListView: FolderListView, userIdx: Int): View
     }
 }
 
-class FolderContentViewModel(getFolderContentView:GetFolderContentView, userIdx:Long, folderIdx:Int):ViewModel(){
+class FolderContentViewModel():ViewModel(){
     private lateinit var folderContentLiveData: MutableLiveData<List<FolderContent>>
     private var folderContentRepository= FolderContentRepository()
 
@@ -52,7 +51,7 @@ class FolderContentViewModel(getFolderContentView:GetFolderContentView, userIdx:
     }
 }
 
-class BlockChatViewModel(getBlockedChatListView:GetBlockedChatListView, userIdx:Long, folderIdx:Int):ViewModel(){
+class BlockChatViewModel():ViewModel(){
     private lateinit var blockChatLiveData: MutableLiveData<List<BlockedChatList>>
     private var blockChatRepository= BlockedChatListRepository()
 
@@ -62,11 +61,11 @@ class BlockChatViewModel(getBlockedChatListView:GetBlockedChatListView, userIdx:
     }
 }
 
-class HiddenFolderListViewModel(hiddenFolderListView: HiddenFolderListView, userIdx: Int): ViewModel() {
-    private lateinit var hiddenFolderListLiveData: MutableLiveData<List<HiddenFolderList>>
+class HiddenFolderListViewModel(): ViewModel() {
+    private lateinit var hiddenFolderListLiveData: MutableLiveData<List<FolderList>>
     private var hiddenFolderListRepository = HiddenFolderListRepository()
 
-    fun getHiddenFolderListLiveData(hiddenFolderListView: HiddenFolderListView, userIdx: Long): LiveData<List<HiddenFolderList>> {
+    fun getHiddenFolderListLiveData(hiddenFolderListView: HiddenFolderListView, userIdx: Long): LiveData<List<FolderList>> {
         hiddenFolderListLiveData = hiddenFolderListRepository.getHiddenFolderList(hiddenFolderListView, userIdx)
         return hiddenFolderListLiveData
     }

@@ -12,7 +12,7 @@ import retrofit2.Callback
 import retrofit2.Response
 
 class ChatRepository{
-    private lateinit var chatLiveData: MutableLiveData<List<ChatList>>
+    private var chatLiveData = MutableLiveData<List<ChatList>>()
     private val tag = "REPO/CHAT"
 
     // 갠톡 or 단톡 채팅 가져오기

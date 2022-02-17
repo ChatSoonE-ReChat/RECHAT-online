@@ -13,12 +13,11 @@ import com.chat_soon_e.re_chat.data.remote.chat.FolderContent
 import com.chat_soon_e.re_chat.data.remote.folder.FolderList
 import com.chat_soon_e.re_chat.data.remote.folder.FolderService
 import com.chat_soon_e.re_chat.databinding.ActivityFolderContentBinding
-import com.chat_soon_e.re_chat.ui.ViewModel.FolderContentViewModel
+import com.chat_soon_e.re_chat.ui.view_model.FolderContentViewModel
 import com.chat_soon_e.re_chat.ui.view.ChatView
 import com.chat_soon_e.re_chat.ui.view.GetFolderContentView
 import com.chat_soon_e.re_chat.utils.getID
 import com.google.gson.Gson
-import okhttp3.internal.notifyAll
 
 // 내 폴더 안의 채팅 리스트를 가져와 주는 것
 class FolderContentActivity: BaseActivity<ActivityFolderContentBinding>(ActivityFolderContentBinding::inflate), GetFolderContentView, ChatView{

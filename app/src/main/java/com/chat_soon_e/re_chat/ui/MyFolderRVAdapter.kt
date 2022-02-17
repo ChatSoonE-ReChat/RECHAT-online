@@ -1,6 +1,7 @@
 package com.chat_soon_e.re_chat.ui
 
 import android.annotation.SuppressLint
+import android.util.Log
 import android.view.*
 import android.widget.PopupMenu
 import androidx.recyclerview.widget.RecyclerView
@@ -10,15 +11,17 @@ import com.chat_soon_e.re_chat.data.remote.folder.FolderList
 import com.chat_soon_e.re_chat.databinding.ItemMyFolderBinding
 
 class MyFolderRVAdapter(private val mContext: MyFolderActivity): RecyclerView.Adapter<MyFolderRVAdapter.ViewHolder>() {
-    private val folderList = ArrayList<FolderList>()
     private lateinit var popup: PopupMenu
     private lateinit var binding: ItemMyFolderBinding
+
+    private val folderList = ArrayList<FolderList>()
+    private val tag = "RV/MYFOLDER"
 
     // 클릭 인터페이스
     interface MyItemClickListener {
         fun onRemoveFolder(idx: Int)
         fun onHideFolder(idx: Int)
-        fun onFolderNameLongClick(binding: ItemMyFolderBinding, folderIdx: Int)
+        fun onFolderNameLongClick(binding: ItemMyFolderBinding, position: Int, folderIdx: Int)
         fun onFolderClick(view: View, position: Int)
         fun onFolderLongClick(popup: PopupMenu)
     }
@@ -46,7 +49,7 @@ class MyFolderRVAdapter(private val mContext: MyFolderActivity): RecyclerView.Ad
 
         // 폴더 이름 롱클릭 시 이름 변경할 수 있도록
         holder.binding.itemMyFolderTv.setOnLongClickListener {
-            mItemClickListener.onFolderNameLongClick(holder.binding, position)
+            mItemClickListener.onFolderNameLongClick(holder.binding, position, folderList[position].folderIdx)
             return@setOnLongClickListener false
         }
 
@@ -64,7 +67,7 @@ class MyFolderRVAdapter(private val mContext: MyFolderActivity): RecyclerView.Ad
                 when (item?.itemId) {
                     R.id.popup_folder_edit_menu_1 -> {
                         // 이름 바꾸기
-                        mContext.changeFolderName(holder.binding, folderList[position].folderIdx)
+                        mContext.changeFolderName(holder.binding, position, folderList[position].folderIdx)
                     }
 
                     R.id.popup_folder_edit_menu_2 -> {
@@ -99,6 +102,7 @@ class MyFolderRVAdapter(private val mContext: MyFolderActivity): RecyclerView.Ad
     fun addFolderList(folderList: ArrayList<FolderList>) {
         this.folderList.clear()
         this.folderList.addAll(folderList)
+        Log.d(tag, "addFolderList()/folderList: ${this.folderList}")
         notifyDataSetChanged()
     }
 

@@ -18,12 +18,12 @@ import androidx.recyclerview.widget.RecyclerView
 import com.chat_soon_e.re_chat.R
 import com.chat_soon_e.re_chat.data.local.Icon
 import com.chat_soon_e.re_chat.data.local.AppDatabase
+import com.chat_soon_e.re_chat.data.remote.folder.FolderList
 import com.chat_soon_e.re_chat.data.remote.folder.FolderService
-import com.chat_soon_e.re_chat.data.remote.folder.HiddenFolderList
 import com.chat_soon_e.re_chat.databinding.ActivityHiddenFolderBinding
 import com.chat_soon_e.re_chat.databinding.ItemHiddenFolderBinding
 import com.chat_soon_e.re_chat.databinding.ItemIconBinding
-import com.chat_soon_e.re_chat.ui.ViewModel.HiddenFolderListViewModel
+import com.chat_soon_e.re_chat.ui.view_model.HiddenFolderListViewModel
 import com.chat_soon_e.re_chat.ui.view.FolderAPIView
 import com.chat_soon_e.re_chat.ui.view.HiddenFolderListView
 import com.chat_soon_e.re_chat.utils.getID
@@ -34,12 +34,13 @@ class HiddenFolderActivity: BaseActivity<ActivityHiddenFolderBinding>(ActivityHi
     HiddenFolderListView, FolderAPIView {
     private lateinit var database: AppDatabase
     private lateinit var hiddenFolderRVAdapter: HiddenFolderRVAdapter
+    private lateinit var folderRVAdapter: MyFolderRVAdapter
     private lateinit var iconRVAdapter: ChangeIconRVAdapter
     private lateinit var mPopupWindow: PopupWindow
     private lateinit var folderService: FolderService
 
     // 기존 Folder RoomDB 대신 서버로부터 받은 HiddenFolderList data class를 사용하도록 했습니다.
-    private var hiddenFolderList = ArrayList<HiddenFolderList>()
+    private var hiddenFolderList = ArrayList<FolderList>()
     private val tag = "ACT/HIDDEN-FOLDER"
     private val userID = getID()
     private var iconList = ArrayList<Icon>()
@@ -49,34 +50,43 @@ class HiddenFolderActivity: BaseActivity<ActivityHiddenFolderBinding>(ActivityHi
         database = AppDatabase.getInstance(this)!!
         folderService = FolderService()
 
-        getHiddenFolderListLiveData()
-        initRecyclerView()
+//        getHiddenFolderListLiveData()
     }
 
-    private fun getHiddenFolderListLiveData() {
-        folderService.getHiddenFolderList(this, userID)
+    override fun onResume() {
+        super.onResume()
+        initHiddenFolderList()
+    }
 
-        val hiddenFolderListViewModel = ViewModelProvider(this).get(HiddenFolderListViewModel::class.java)
-        hiddenFolderListViewModel.getHiddenFolderListLiveData(this, userID).observe(this) {
-            hiddenFolderList = it as ArrayList<HiddenFolderList>
-            Log.d(tag, "hiddenFolderList: $hiddenFolderList")
-        }
+//    private fun getHiddenFolderListLiveData() {
+//        folderService.getHiddenFolderList(this, userID)
+//
+//        val hiddenFolderListViewModel = ViewModelProvider(this).get(HiddenFolderListViewModel::class.java)
+//        hiddenFolderListViewModel.getHiddenFolderListLiveData(this, userID).observe(this) {
+//            hiddenFolderList = it as ArrayList<FolderList>
+//            Log.d(tag, "hiddenFolderList: $hiddenFolderList")
+//        }
+//    }
+
+    private fun initHiddenFolderList() {
+        hiddenFolderRVAdapter = HiddenFolderRVAdapter(this)
+        folderService.getHiddenFolderList(this, userID)
     }
 
     // 폴더 리스트 초기화
     private fun initRecyclerView() {
         // RecyclerView 초기화
-        hiddenFolderRVAdapter = HiddenFolderRVAdapter(this)
+        hiddenFolderRVAdapter.addFolderList(this.hiddenFolderList)
         binding.hiddenFolderListRecyclerView.adapter = hiddenFolderRVAdapter
 
         hiddenFolderRVAdapter.setMyItemClickListener(object: HiddenFolderRVAdapter.MyItemClickListener {
             // 숨김 폴더 다시 해제하기
-            override fun onShowFolder(folderIdx: Int) {
+            override fun onShowFolder(position: Int, folderIdx: Int) {
                 folderService.unhideFolder(this@HiddenFolderActivity, userID, folderIdx)
             }
 
             // 폴더 삭제하기
-            override fun onRemoveFolder(folderIdx: Int) {
+            override fun onRemoveFolder(position: Int, folderIdx: Int) {
                 folderService.deleteFolder(this@HiddenFolderActivity, userID, folderIdx)
             }
 
@@ -98,17 +108,16 @@ class HiddenFolderActivity: BaseActivity<ActivityHiddenFolderBinding>(ActivityHi
             }
 
             // 폴더 이름 롱클릭 시 이름 변경
-            override fun onFolderNameLongClick(itemHiddenFolderBinding: ItemHiddenFolderBinding, folderIdx: Int) {
-                changeFolderName(itemHiddenFolderBinding, folderIdx)
+            override fun onFolderNameLongClick(itemHiddenFolderBinding: ItemHiddenFolderBinding, position: Int, folderIdx: Int) {
+                changeFolderName(itemHiddenFolderBinding, position, folderIdx)
             }
         })
-
-        getHiddenFolderListLiveData()
+//        getHiddenFolderListLiveData()
     }
 
     // 이름 바꾸기 팝업 윈도우
     @SuppressLint("InflateParams")
-    fun changeFolderName(itemHiddenFolderBinding: ItemHiddenFolderBinding, folderIdx:Int) {
+    fun changeFolderName(itemHiddenFolderBinding: ItemHiddenFolderBinding, position: Int, folderIdx:Int) {
         val size = windowManager.currentWindowMetricsPointCompat()
         val width = (size.x * 0.8f).toInt()
         val inflater = getSystemService(LAYOUT_INFLATER_SERVICE) as LayoutInflater
@@ -135,14 +144,14 @@ class HiddenFolderActivity: BaseActivity<ActivityHiddenFolderBinding>(ActivityHi
             itemHiddenFolderBinding.itemHiddenFolderTv.text = text
 
             // 폴더 이름 바꾸기
-            folderService.changeFolderName(this@HiddenFolderActivity, userID, folderIdx, text)
+            folderService.changeFolderName(this@HiddenFolderActivity, userID, folderIdx, FolderList(folderIdx, text, hiddenFolderList[position].folderImg))
             mPopupWindow.dismiss()  // 팝업 윈도우 종료
         }
     }
 
     // 아이콘 바꾸기 팝업 윈도우
     @SuppressLint("InflateParams")
-    fun changeIcon(itemHiddenFolderBinding: ItemHiddenFolderBinding, folderIdx:Int) {
+    fun changeIcon(itemHiddenFolderBinding: ItemHiddenFolderBinding, position: Int, folderIdx:Int) {
         val size = windowManager.currentWindowMetricsPointCompat()
         val width = (size.x * 0.8f).toInt()
         val height = (size.y * 0.6f).toInt()
@@ -178,7 +187,7 @@ class HiddenFolderActivity: BaseActivity<ActivityHiddenFolderBinding>(ActivityHi
                 val iconBitmapAsString = Base64.encodeToString(iconBitmapAsByte, Base64.DEFAULT)
 
                 // 폴더 아이콘 바꾸기
-                folderService.changeFolderIcon(this@HiddenFolderActivity, userID, folderIdx, iconBitmapAsString)
+                folderService.changeFolderIcon(this@HiddenFolderActivity, userID, folderIdx, FolderList(folderIdx, hiddenFolderList[position].folderName, iconBitmapAsString))
                 mPopupWindow.dismiss()  // 팝업 윈도우 종료
             }
         })
@@ -215,9 +224,11 @@ class HiddenFolderActivity: BaseActivity<ActivityHiddenFolderBinding>(ActivityHi
     }
 
     // 숨김 폴더목록 가져오기 성공했을 때
-    override fun onHiddenFolderListSuccess(hiddenFolderList: ArrayList<HiddenFolderList>) {
-        Log.d(tag, "onHiddenFolderListSuccesS()")
+    override fun onHiddenFolderListSuccess(hiddenFolderList: ArrayList<FolderList>) {
+        Log.d(tag, "onHiddenFolderListSuccess()")
+        this.hiddenFolderList.clear()
         this.hiddenFolderList = hiddenFolderList
+        initRecyclerView()
     }
 
     // 숨김 폴더목록 가져오기 실패했을 때

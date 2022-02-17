@@ -1,4 +1,4 @@
-package com.chat_soon_e.re_chat.ui.ViewModel
+package com.chat_soon_e.re_chat.ui.view_model
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel

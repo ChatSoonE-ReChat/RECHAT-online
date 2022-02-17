@@ -9,12 +9,12 @@ import android.widget.PopupMenu
 import androidx.recyclerview.widget.RecyclerView
 import com.chat_soon_e.re_chat.ApplicationClass.Companion.loadBitmap
 import com.chat_soon_e.re_chat.R
-import com.chat_soon_e.re_chat.data.remote.folder.HiddenFolderList
+import com.chat_soon_e.re_chat.data.remote.folder.FolderList
 import com.chat_soon_e.re_chat.databinding.ItemHiddenFolderBinding
 
 class HiddenFolderRVAdapter(private val mContext: HiddenFolderActivity): RecyclerView.Adapter<HiddenFolderRVAdapter.ViewHolder>() {
     // 기존의 Folder RoomDB에서 서버로부터 받은 HiddenFolderList data class로 바꿨습니다.
-    private val hiddenFolderList = ArrayList<HiddenFolderList>()
+    private val hiddenFolderList = ArrayList<FolderList>()
 
     private lateinit var popupMenu: PopupMenu
     private lateinit var itemHiddenFolderBinding: ItemHiddenFolderBinding
@@ -22,11 +22,11 @@ class HiddenFolderRVAdapter(private val mContext: HiddenFolderActivity): Recycle
 
     // 클릭 인터페이스
     interface MyItemClickListener {
-        fun onShowFolder(folderIdx: Int)
-        fun onRemoveFolder(folderIdx: Int)
+        fun onShowFolder(position: Int, folderIdx: Int)
+        fun onRemoveFolder(position: Int, folderIdx: Int)
         fun onFolderClick(view: View, position: Int)
         fun onFolderLongClick(popupMenu: PopupMenu)
-        fun onFolderNameLongClick(itemHiddenFolderBinding: ItemHiddenFolderBinding, folderIdx: Int)
+        fun onFolderNameLongClick(itemHiddenFolderBinding: ItemHiddenFolderBinding, position: Int, folderIdx: Int)
     }
 
     // 리스너 객체를 외부에서 전달받는 함수
@@ -49,7 +49,7 @@ class HiddenFolderRVAdapter(private val mContext: HiddenFolderActivity): Recycle
 
         // 폴더 이름 롱클릭 시 이름 변경할 수 있도록
         itemHiddenFolderBinding.itemHiddenFolderTv.setOnLongClickListener {
-            mItemClickListener.onFolderNameLongClick(itemHiddenFolderBinding, position)
+            mItemClickListener.onFolderNameLongClick(itemHiddenFolderBinding, position, hiddenFolderList[position].folderIdx)
             return@setOnLongClickListener false
         }
 
@@ -67,23 +67,23 @@ class HiddenFolderRVAdapter(private val mContext: HiddenFolderActivity): Recycle
                 when (item?.itemId) {
                     R.id.popup_folder_edit_menu_1 -> {
                         // 폴더 이름 바꾸기
-                        mContext.changeFolderName(itemHiddenFolderBinding, hiddenFolderList[position].folderIdx)
+                        mContext.changeFolderName(itemHiddenFolderBinding, position, hiddenFolderList[position].folderIdx)
                     }
 
                     R.id.popup_folder_edit_menu_2 -> {
                         // 폴더 아이콘 바꾸기
-                        mContext.changeIcon(itemHiddenFolderBinding, hiddenFolderList[position].folderIdx)
+                        mContext.changeIcon(itemHiddenFolderBinding, position, hiddenFolderList[position].folderIdx)
                     }
 
                     R.id.popup_folder_edit_menu_3 -> {
                         // 폴더 삭제하기
-                        mItemClickListener.onRemoveFolder(hiddenFolderList[position].folderIdx)
+                        mItemClickListener.onRemoveFolder(position, hiddenFolderList[position].folderIdx)
                         removeFolder(position)
                     }
 
                     R.id.popup_folder_edit_menu_4 -> {
                         // 숨김 폴더 다시 해제하기
-                        mItemClickListener.onShowFolder(hiddenFolderList[position].folderIdx)
+                        mItemClickListener.onShowFolder(position, hiddenFolderList[position].folderIdx)
                         removeFolder(position)
                     }
                 }
@@ -100,7 +100,7 @@ class HiddenFolderRVAdapter(private val mContext: HiddenFolderActivity): Recycle
 
     // folder list 추가 및 연결
     @SuppressLint("NotifyDataSetChanged")
-    fun addFolderList(folderList: ArrayList<HiddenFolderList>) {
+    fun addFolderList(folderList: ArrayList<FolderList>) {
         this.hiddenFolderList.clear()
         this.hiddenFolderList.addAll(folderList)
         notifyDataSetChanged()
@@ -114,13 +114,13 @@ class HiddenFolderRVAdapter(private val mContext: HiddenFolderActivity): Recycle
     }
 
     // 선택된 폴더 객체 반환
-    fun getSelectedFolder(position: Int): HiddenFolderList {
+    fun getSelectedFolder(position: Int): FolderList {
         return hiddenFolderList[position]
     }
 
     // 뷰홀더
     inner class ViewHolder(val itemHiddenFolderBinding: ItemHiddenFolderBinding): RecyclerView.ViewHolder(itemHiddenFolderBinding.root) {
-        fun bind(hiddenFolder: HiddenFolderList) {
+        fun bind(hiddenFolder: FolderList) {
             itemHiddenFolderBinding.itemHiddenFolderTv.text = hiddenFolder.folderName
             if(hiddenFolder.folderImg != null) itemHiddenFolderBinding.itemHiddenFolderIv.setImageBitmap(loadBitmap(hiddenFolder.folderImg, mContext))
             else itemHiddenFolderBinding.itemHiddenFolderIv.setImageResource(R.drawable.folder_cloud_lock)

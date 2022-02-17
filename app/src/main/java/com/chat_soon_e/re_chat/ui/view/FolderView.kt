@@ -1,7 +1,6 @@
 package com.chat_soon_e.re_chat.ui.view
 
 import com.chat_soon_e.re_chat.data.remote.folder.FolderList
-import com.chat_soon_e.re_chat.data.remote.folder.HiddenFolderList
 
 // 공통 View
 // 폴더 생성하기, 폴더 이름 바꾸기, 폴더 아이콘 바꾸기, 폴더 삭제하기, 폴더 숨기기, 숨김 폴더 다시 해제하기
@@ -42,7 +41,7 @@ interface DeleteFolderView {
 
 // 숨김 폴더목록 가져오기
 interface HiddenFolderListView {
-    fun onHiddenFolderListSuccess(hiddenFolderList: ArrayList<HiddenFolderList>)
+    fun onHiddenFolderListSuccess(hiddenFolderList: ArrayList<FolderList>)
     fun onHiddenFolderListFailure(code: Int, message: String)
 }
 

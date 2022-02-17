@@ -14,7 +14,7 @@ import retrofit2.Callback
 import retrofit2.Response
 
 class ChatListRepository {
-    private lateinit var chatListLiveData: MutableLiveData<List<ChatList>>
+    private var chatListLiveData = MutableLiveData<List<ChatList>>()
     private val tag = "REPO/CHAT-LIST"
 
     fun getChatList(getChatListView: GetChatListView, userIdx: Long): MutableLiveData<List<ChatList>> {
