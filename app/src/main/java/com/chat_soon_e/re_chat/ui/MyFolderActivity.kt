@@ -28,6 +28,7 @@ import com.chat_soon_e.re_chat.data.local.Icon
 import com.chat_soon_e.re_chat.data.remote.folder.FolderList
 import com.chat_soon_e.re_chat.data.remote.folder.FolderService
 import com.chat_soon_e.re_chat.databinding.ItemIconBinding
+import com.chat_soon_e.re_chat.ui.ViewModel.FolderListViewModel
 import com.chat_soon_e.re_chat.ui.view.*
 import com.chat_soon_e.re_chat.utils.getID
 import com.google.gson.Gson

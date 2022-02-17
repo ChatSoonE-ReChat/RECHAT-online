@@ -1,4 +1,4 @@
-package com.chat_soon_e.re_chat.ui
+package com.chat_soon_e.re_chat.ui.repository
 
 import android.util.Log
 import androidx.lifecycle.MutableLiveData

@@ -15,25 +15,6 @@ data class ChatResponse(
     @SerializedName("result") val result: JsonArray?
 )
 
-// 전체 채팅목록 가져오기 (메인화면)
-data class ChatList(
-    @SerializedName("chatIdx") var chatIdx: Int,
-    @SerializedName("chat_name") var chatName: String,
-    @SerializedName("profile_image") var profileImg: String?,
-    @SerializedName("latest_time") var latestTime: String,
-    @SerializedName("latest_message") var latestMessage: String,
-    @SerializedName("groupName") var groupName: String?,
-    @SerializedName("isNew") var isNew: Int = 1,
-) {
-    @PrimaryKey(autoGenerate = true) var id: Int? = 0
-    @Ignore var viewType: Int = 0
-    @Ignore var isChecked: Boolean = false
-}
-
-object ChatListViewType {
-    const val DEFAULT = 0
-    const val CHOOSE = 1
-}
 
 //채팅 추가하기
 data class Chat(
@@ -61,6 +42,27 @@ data class BlockedChatList(
 //    @SerializedName("groupName") val groupName: String?
 //)
 
+// 전체 채팅목록 가져오기 (메인화면), 채팅 가져오기
+data class ChatList(
+    @SerializedName("chatIdx") var chatIdx: Int,
+    @SerializedName("chat_name") var chatName: String,
+    @SerializedName("profile_image") var profileImg: String?,
+    @SerializedName("latest_time") var latestTime: String,
+    @SerializedName("latest_message") var latestMessage: String,
+    @SerializedName("groupName") var groupName: String?,
+    @SerializedName("isNew") var isNew: Int = 1,
+) {
+    @PrimaryKey(autoGenerate = true) var id: Int? = 0
+    @Ignore
+    var viewType: Int = 0
+    @Ignore var isChecked: Boolean = false
+}
+
+object ChatListViewType {
+    const val DEFAULT = 0
+    const val CHOOSE = 1
+}
+
 // 폴더 안의 채팅 가져오기 -> FolderContent 활용
 data class FolderChatResponse(@SerializedName("isSuccess")val isSuccess: Boolean, @SerializedName("code") val code:Int, val message: String, val result:JsonArray?)
 // 폴더 안의 채팅 가져오기
@@ -73,3 +75,4 @@ data class FolderContent(
     @SerializedName("chat_date") val chatDate: String?,
     @SerializedName("post_time") val postTime: String
 )
+

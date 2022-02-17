@@ -1,4 +1,4 @@
-package com.chat_soon_e.re_chat.ui
+package com.chat_soon_e.re_chat.ui.repository
 
 import android.util.Log
 import androidx.lifecycle.LiveData
@@ -8,6 +8,7 @@ import com.chat_soon_e.re_chat.data.remote.chat.ChatList
 import com.chat_soon_e.re_chat.data.remote.chat.ChatResponse
 import com.chat_soon_e.re_chat.data.remote.chat.ChatRetrofitInterface
 import com.chat_soon_e.re_chat.ui.view.GetChatListView
+import com.chat_soon_e.re_chat.ui.view.GetChatView
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response

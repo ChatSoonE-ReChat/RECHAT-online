@@ -18,12 +18,12 @@ import androidx.recyclerview.widget.RecyclerView
 import com.chat_soon_e.re_chat.R
 import com.chat_soon_e.re_chat.data.local.Icon
 import com.chat_soon_e.re_chat.data.local.AppDatabase
-import com.chat_soon_e.re_chat.data.remote.folder.FolderList
 import com.chat_soon_e.re_chat.data.remote.folder.FolderService
 import com.chat_soon_e.re_chat.data.remote.folder.HiddenFolderList
 import com.chat_soon_e.re_chat.databinding.ActivityHiddenFolderBinding
 import com.chat_soon_e.re_chat.databinding.ItemHiddenFolderBinding
 import com.chat_soon_e.re_chat.databinding.ItemIconBinding
+import com.chat_soon_e.re_chat.ui.ViewModel.HiddenFolderListViewModel
 import com.chat_soon_e.re_chat.ui.view.FolderAPIView
 import com.chat_soon_e.re_chat.ui.view.HiddenFolderListView
 import com.chat_soon_e.re_chat.utils.getID

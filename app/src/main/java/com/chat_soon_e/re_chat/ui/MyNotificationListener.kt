@@ -57,7 +57,6 @@ class MyNotificationListener: NotificationListenerService(), ChatView {
         chatService = ChatService()
 
         if(packageName != null && packageName == "com.kakao.talk") {
-            // 데이터베이스 연결
             val extras = sbn.notification.extras
             val name = extras.getString(Notification.EXTRA_TITLE)   // 발신자
             val text = extras.getCharSequence(Notification.EXTRA_TEXT)  // 내용

@@ -11,10 +11,12 @@ data class FolderResponse(
 )
 
 // 전체 폴더목록 가져오기 (숨김폴더 제외)
+// 폴더 idx 추가될 예정
 data class FolderList(
     @SerializedName("folderIdx") val folderIdx: Int,
     @SerializedName("folder_name") val folderName: String,
     @SerializedName("folderImg") val folderImg: String?
+
 )
 
 // 숨김 폴더목록 가져오기

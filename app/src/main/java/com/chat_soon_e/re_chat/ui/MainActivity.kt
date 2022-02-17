@@ -28,11 +28,16 @@ import com.chat_soon_e.re_chat.R
 import com.chat_soon_e.re_chat.data.local.Icon
 import com.chat_soon_e.re_chat.data.remote.auth.USER_ID
 import com.chat_soon_e.re_chat.data.remote.chat.ChatList
+import com.chat_soon_e.re_chat.data.remote.chat.ChatListViewType
 import com.chat_soon_e.re_chat.data.remote.chat.ChatService
 import com.chat_soon_e.re_chat.data.remote.folder.FolderList
 import com.chat_soon_e.re_chat.data.remote.folder.FolderService
 import com.chat_soon_e.re_chat.ui.view.*
 import com.chat_soon_e.re_chat.databinding.ItemFolderListBinding
+import com.chat_soon_e.re_chat.ui.ViewModel.ChatListViewModel
+import com.chat_soon_e.re_chat.ui.ViewModel.ChatTypeViewModel
+import com.chat_soon_e.re_chat.ui.ViewModel.ChatViewModel
+import com.chat_soon_e.re_chat.ui.ViewModel.FolderListViewModel
 import com.chat_soon_e.re_chat.utils.getID
 import com.chat_soon_e.re_chat.utils.permissionGrantred
 import com.google.android.material.navigation.NavigationView
@@ -50,7 +55,7 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
     private var folderList = ArrayList<FolderList>()
     private var chatList = ArrayList<ChatList>()
     private var permission: Boolean = true
-    private val chatViewModel: ChatViewModel by viewModels()
+    private val chatTypeViewModel: ChatTypeViewModel by viewModels()
     private var userID = getID()
     private val tag = "ACT/MAIN"
 
@@ -193,7 +198,7 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
         })
 
         // main chat list view model
-        chatViewModel.mode.observe(this) {
+        chatTypeViewModel.mode.observe(this) {
             if (it == 0) {
                 // 일반 모드 (= 이동 모드)
                 mainRVAdapter.clearSelectedItemList()
@@ -234,7 +239,7 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
             // 현재 선택 모드 -> 일반 모드로 변경
 //            mainRVAdapter.removeSelectedItemList()
             mainRVAdapter.clearSelectedItemList()
-            chatViewModel.setMode(mode = 0)
+            chatTypeViewModel.setMode(mode = 0)
 
             binding.mainContent.mainFolderIv.visibility = View.VISIBLE
             binding.mainContent.mainFolderModeIv.visibility = View.GONE
@@ -394,10 +399,10 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
 
         // 하단 중앙 아이콘 클릭시
         binding.mainContent.mainFolderIv.setOnClickListener {
-            if (chatViewModel.mode.value == 0) {
-                chatViewModel.setMode(mode = 1)
+            if (chatTypeViewModel.mode.value == 0) {
+                chatTypeViewModel.setMode(mode = 1)
             } else {
-                chatViewModel.setMode(mode = 0)
+                chatTypeViewModel.setMode(mode = 0)
             }
         }
 
@@ -407,7 +412,7 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
         }
 
         // 선택 모드 시
-        chatViewModel.mode.observe(this) {
+        chatTypeViewModel.mode.observe(this) {
             if (it == 1) {
                 // 해당 chat 삭제
                 binding.mainContent.mainDeleteIv.setOnClickListener {
@@ -415,7 +420,7 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
                     Toast.makeText(this@MainActivity, "삭제하기", Toast.LENGTH_SHORT).show()
 
                     mainRVAdapter.clearSelectedItemList()
-                    chatViewModel.setMode(mode = 0)
+                    chatTypeViewModel.setMode(mode = 0)
 
                     binding.mainContent.mainFolderIv.visibility = View.VISIBLE
                     binding.mainContent.mainFolderModeIv.visibility = View.GONE
@@ -429,7 +434,7 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
                     Toast.makeText(this@MainActivity, "차단하기", Toast.LENGTH_SHORT).show()
 
                     mainRVAdapter.clearSelectedItemList()
-                    chatViewModel.setMode(mode = 0)
+                    chatTypeViewModel.setMode(mode = 0)
 
                     binding.mainContent.mainFolderIv.visibility = View.VISIBLE
                     binding.mainContent.mainFolderModeIv.visibility = View.GONE
@@ -540,7 +545,7 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
             binding.mainContent.mainBackgroundView.visibility = View.INVISIBLE
 
             mainRVAdapter.clearSelectedItemList()
-            chatViewModel.setMode(mode = 0)
+            chatTypeViewModel.setMode(mode = 0)
 
             binding.mainContent.mainFolderIv.visibility = View.VISIBLE
             binding.mainContent.mainFolderModeIv.visibility = View.GONE

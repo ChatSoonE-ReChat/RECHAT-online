@@ -33,7 +33,6 @@ class FolderService {
                                 val folderIdx = jsonElement.asJsonObject.get("folderIdx").asInt
                                 val folderName = jsonElement.asJsonObject.get("folder_name").asString
                                 val folderImg = if(jsonElement.asJsonObject.get("folderImg").isJsonNull) null else jsonElement.asJsonObject.get("folderImg").asString
-
                                 Log.d(tag, "folderImg: ${folderImg.isNullOrEmpty()}")
                                 Log.d(tag, "folderImg: $folderImg")
 
