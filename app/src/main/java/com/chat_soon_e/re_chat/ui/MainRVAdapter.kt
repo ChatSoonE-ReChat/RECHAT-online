@@ -12,6 +12,7 @@ import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.RecyclerView
 import com.chat_soon_e.re_chat.ApplicationClass.Companion.loadBitmap
 import com.chat_soon_e.re_chat.R
+import com.chat_soon_e.re_chat.data.remote.chat.Chat
 import com.chat_soon_e.re_chat.databinding.ItemChatListChooseBinding
 import com.chat_soon_e.re_chat.databinding.ItemChatListDefaultBinding
 import com.chat_soon_e.re_chat.data.remote.chat.ChatList
@@ -81,11 +82,12 @@ class MainRVAdapter(private val context: Context, private val mItemClickListener
     @RequiresApi(Build.VERSION_CODES.N)
     @SuppressLint("NotifyDataSetChanged")
     fun removeSelectedItemList() {
+        chatService= ChatService()
         // checked 안 된 것들로 교체해서 Activity에는 선택 안 된 것들만 남게 한다.
         val selectedList = chatList.filter{ chatlist-> chatlist.isChecked as Boolean }
-        // 선택한 채팅 삭제하기
+        // 선택한 채팅 삭제하기, 서버에서
         for(i in selectedList) {
-            chatService.deleteChat(this, userID, i.chatIdx)
+            chatService.deleteChatList(this, userID, i.chatIdx, i.groupName)
         }
         notifyDataSetChanged()
     }
@@ -93,6 +95,7 @@ class MainRVAdapter(private val context: Context, private val mItemClickListener
     // selectedItemList 차단
     @SuppressLint("NotifyDataSetChanged")
     fun blockSelectedItemList() {
+        chatService=ChatService()
         // checked 안 된 것들로 교체해서 Activity에는 선택 안 된 것들만 남게 한다.
         val selectedList = chatList.filter{ chatlist-> chatlist.isChecked as Boolean }
         // 선택한 채팅목록/유저 차단하기

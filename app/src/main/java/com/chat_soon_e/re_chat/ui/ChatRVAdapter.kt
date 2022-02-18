@@ -72,10 +72,11 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val size: Point,
 
     @SuppressLint("NotifyDataSetChanged")
     fun removeChat():ChatList? {
-        // DB 에서 지우고
+        // 서버에서 지우고
+        // 다시 챗을 불러온다.
         mItemClickListener.onRemoveChat()
-        chatList =chatList.filter{chatlist->!chatlist.isChecked} as ArrayList<ChatList>
-        notifyDataSetChanged()
+        //chatList =chatList.filter{chatlist->!chatlist.isChecked} as ArrayList<ChatList>
+        //notifyDataSetChanged()
         return if(chatList.isNotEmpty())
             chatList[0]
         else

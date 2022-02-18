@@ -112,7 +112,8 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
                 for(i in selectedList){
                     chatService.deleteChat(this@ChatActivity, userID, i)
                 }
-                // 하고나서 liveData 를 어떻게 ?? ================== 해결해야 할 부분
+                // init
+                chatService.getChat(this@ChatActivity, userID, chatListData.chatIdx, chatListData.groupName)
             }
 
             // 선택 모드
@@ -128,6 +129,7 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
     // RecyclerView
     private fun initRecyclerView() {
         database = AppDatabase.getInstance(this)!!
+        chatRVAdapter.addItem(chatList)
 
         val linearLayoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, true)
         linearLayoutManager.stackFromEnd = true
@@ -149,10 +151,10 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
 
         // 어댑터 연결
         binding.chatChatRecyclerView.adapter = chatRVAdapter
-
-        // 서버로부터 데이터 받기
-        val chatService=ChatService()
-        chatService.getChat(this, userID, chatListData.chatIdx, chatListData.groupName)
+//
+//        // 서버로부터 데이터 받기
+//        val chatService=ChatService()
+//        chatService.getChat(this, userID, chatListData.chatIdx, chatListData.groupName)
 
         // 폴더 선택 모드를 해제하기 위해
         binding.chatCancelFab.setOnClickListener {
@@ -211,22 +213,24 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
             var data = chatRVAdapter.removeChat()
             if (data != null)
                 chatListData = data
-            chatRVAdapter.clearSelectedItemList()
-            chatTypeViewModel.setMode(mode = 0)
+            Log.d("afterDeleteChat", "after_remove: "+chatRVAdapter.chatList.toString())
 
-            binding.chatMainFab.setImageResource(R.drawable.navi_center_cloud)
-            ObjectAnimator.ofFloat(binding.chatCancelFab, "translationY", 0f).apply { start() }
-            ObjectAnimator.ofFloat(binding.chatDeleteFab, "translationY", 0f).apply { start() }
-            binding.chatCancelFab.visibility = View.INVISIBLE
-            binding.chatDeleteFab.visibility = View.INVISIBLE
-            binding.chatCancelFab.isClickable = false
-            binding.chatDeleteFab.isClickable = false
-            isFabOpen = false
-            binding.chatBackgroundView.visibility = View.INVISIBLE
-
-            // 일반 모드로
             chatRVAdapter.clearSelectedItemList()
-            chatTypeViewModel.setMode(mode = 0)
+//            chatTypeViewModel.setMode(mode = 0)
+//
+//            binding.chatMainFab.setImageResource(R.drawable.navi_center_cloud)
+//            ObjectAnimator.ofFloat(binding.chatCancelFab, "translationY", 0f).apply { start() }
+//            ObjectAnimator.ofFloat(binding.chatDeleteFab, "translationY", 0f).apply { start() }
+//            binding.chatCancelFab.visibility = View.INVISIBLE
+//            binding.chatDeleteFab.visibility = View.INVISIBLE
+//            binding.chatCancelFab.isClickable = false
+//            binding.chatDeleteFab.isClickable = false
+//            isFabOpen = false
+//            binding.chatBackgroundView.visibility = View.INVISIBLE
+//
+//            // 일반 모드로
+//            chatRVAdapter.clearSelectedItemList()
+//            chatTypeViewModel.setMode(mode = 0)
         }
 
         binding.chatBackIv.setOnClickListener {
@@ -293,16 +297,6 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
                 binding.chatBackgroundView.visibility = View.INVISIBLE
             }
         })
-
-
-        // Server API: 전체폴더 목록 가져오기 (숨김폴더 제외)
-        // RVAdapter 에 추가
-        folderService.getFolderList(this, userID)
-        if(folderList!=null)
-            folderListRVAdapter.addFolderList(folderList)
-
-        folderService = FolderService()
-        folderService.getFolderList(this, userID)
 //        folderListViewModel.getFolderListLiveData(this, userID).observe(this) {
 //            folderListRVAdapter.addFolderList(it as ArrayList<FolderList>)
 //        }
@@ -344,6 +338,8 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
     }
     override fun onGetChatSuccess(chats: ArrayList<ChatList>) {
         // 성공시
+        Log.d(tag, "onGetChatSuccess(): $chats")
+        Log.d("afterDeleteChat", "reset_chat: "+chatRVAdapter.chatList.toString())
         this.chatList.clear()
         this.chatList.addAll(chats)
         initRecyclerView()
