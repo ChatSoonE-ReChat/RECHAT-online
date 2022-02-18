@@ -21,7 +21,7 @@ interface FolderRetrofitInterface {
     fun changeFolderName(
         @Path("kakaoUserIdx") kakaoUserIdx: Long,
         @Query("folderIdx") folderIdx: Int,
-        @Body folderName: String
+        @Body folder: FolderList
     ): Call<FolderResponse>
 
     // 폴더 아이콘 바꾸기
@@ -29,7 +29,7 @@ interface FolderRetrofitInterface {
     fun changeFolerIcon(
         @Path("kakaoUserIdx") kakaoUserIdx: Long,
         @Query("folderIdx") folderIdx: Int,
-        @Body folderImg: String
+        @Body folder: FolderList
     ): Call<FolderResponse>
 
     // 폴더 삭제하기

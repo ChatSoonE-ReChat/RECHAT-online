@@ -4,6 +4,8 @@ import androidx.room.Ignore
 import androidx.room.PrimaryKey
 import com.google.gson.JsonArray
 import com.google.gson.annotations.SerializedName
+import kotlinx.android.parcel.Parcelize
+import java.io.Serializable
 import java.util.*
 
 // 자바의 데이터 클래스 멤버변수 이름은 camelCase 사용
@@ -43,6 +45,7 @@ data class BlockedChatList(
 //)
 
 // 전체 채팅목록 가져오기 (메인화면), 채팅 가져오기
+
 data class ChatList(
     @SerializedName("chatIdx") var chatIdx: Int,
     @SerializedName("chat_name") var chatName: String,
@@ -51,7 +54,7 @@ data class ChatList(
     @SerializedName("latest_message") var latestMessage: String,
     @SerializedName("groupName") var groupName: String?,
     @SerializedName("isNew") var isNew: Int = 1,
-) {
+): Serializable {
     @PrimaryKey(autoGenerate = true) var id: Int? = 0
     @Ignore
     var viewType: Int = 0

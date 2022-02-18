@@ -1,11 +1,8 @@
 package com.chat_soon_e.re_chat.ui
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.chat_soon_e.re_chat.data.local.AppDatabase
 import com.chat_soon_e.re_chat.data.remote.chat.BlockedChatList
-import com.chat_soon_e.re_chat.data.remote.chat.Chat
 import com.chat_soon_e.re_chat.data.remote.chat.ChatService
 import com.chat_soon_e.re_chat.databinding.ActivityBlockListBinding
 import com.chat_soon_e.re_chat.ui.view.ChatView

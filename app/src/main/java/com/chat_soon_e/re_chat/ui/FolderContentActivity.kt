@@ -17,21 +17,24 @@ import com.chat_soon_e.re_chat.ui.view.ChatView
 import com.chat_soon_e.re_chat.ui.view.GetFolderContentView
 import com.chat_soon_e.re_chat.utils.getID
 import com.google.gson.Gson
-import okhttp3.internal.notifyAll
 
 // 내 폴더 안의 채팅 리스트를 가져와 주는 것
-class FolderContentActivity: BaseActivity<ActivityFolderContentBinding>(ActivityFolderContentBinding::inflate), GetFolderContentView, ChatView{
+class FolderContentActivity: BaseActivity<ActivityFolderContentBinding>(ActivityFolderContentBinding::inflate), GetFolderContentView, ChatView {
     private lateinit var database: AppDatabase
     private lateinit var folderContentRVAdapter: FolderContentRVAdapter
+    private lateinit var folderService: FolderService
+    private lateinit var chatService: ChatService
+
+    private var folderContentList = ArrayList<FolderContent>()
     lateinit var folderInfo: FolderList
     private val userID = getID()
     private val folderListContent=ArrayList<FolderContent>()
     private val tag = "ACT/FOLDER-CONTENT"
-    private lateinit var folderService:FolderService
-    private lateinit var chatService: ChatService
 
     override fun initAfterBinding() {
         Log.d("AlluserIDCheck", "onChatAct $userID")
+        folderService = FolderService()
+        chatService = ChatService()
 
         initData()
         initRecyclerView()
@@ -59,33 +62,10 @@ class FolderContentActivity: BaseActivity<ActivityFolderContentBinding>(Activity
 
 
     }
-    //해당 폴더를 눌렀을떄 요기로 오게 된다
 
-    // RecyclerView 초기화
-    private fun initRecyclerView() {
+    private fun initFolderContent() {
         // 휴대폰 윈도우 사이즈를 가져온다.
         val size = windowManager.currentWindowMetricsPointCompat()
-
-       // database = AppDatabase.getInstance(this)!!
-        folderService= FolderService()
-
-        // FolderContent 데이터를 RecyclerView 어댑터와 연결
-        // userID: kakaoUserIdx, folderInfo.idx: folder index
-//        database.folderContentDao().getFolderChat(userID, folderInfo.idx).observe(this) {
-//            folderContentRVAdapter.addItem(it)
-//            Log.d("folderDatacheck: ", it.toString())
-//        }
-
-//        // ViewModel: Folder 안의 채팅들을 불러오기. FolderViewModel
-//        val folderContentViewModel=ViewModelProvider(this).get(FolderContentViewModel::class.java)
-//        folderContentViewModel.getFolderContentLiveData(this, userID, folderInfo.folderIdx).observe(this){
-//            folderContentRVAdapter.addItem(it)
-//        }
-
-        // ServerAPI: 폴더 안의 채팅들 불러오기
-        chatService.getFolderContent(this, userID, folderInfo.folderIdx)
-
-
         // RecyclerView click listener 초기화
         folderContentRVAdapter = FolderContentRVAdapter(this, size, object: FolderContentRVAdapter.MyClickListener {
             // 채팅 삭제
@@ -98,6 +78,12 @@ class FolderContentActivity: BaseActivity<ActivityFolderContentBinding>(Activity
                 popupMenu.show()
             }
         })
+
+        chatService.getFolderContent(this, userID, folderInfo.folderIdx)
+    }
+
+    // RecyclerView 초기화
+    private fun initRecyclerView() {
         binding.folderContentRecyclerView.adapter = folderContentRVAdapter
     }
 
@@ -127,21 +113,21 @@ class FolderContentActivity: BaseActivity<ActivityFolderContentBinding>(Activity
     }
 
     override fun onGetFolderContentSuccess(folderContents: ArrayList<FolderContent>) {
-        //혹시 몰라서
-        folderListContent.addAll(folderContents)
-        folderContentRVAdapter.addItem(folderContents)
-        TODO("Not yet implemented")
+        Log.d(tag, "onGetFolderContentSuccess()/folderContents: $folderContents")
+        this.folderContentList.clear()
+        this.folderContentList.addAll(folderContents)
+        initRecyclerView()
     }
 
     override fun onGetFolderContentFailure(code: Int, message: String) {
-        TODO("Not yet implemented")
+        Log.d(tag, "onGetFolderContentFailure()/code: $code, message: $message")
     }
 
     override fun onChatSuccess() {
-        TODO("Not yet implemented")
+        Log.d(tag, "onChatSuccess()")
     }
 
     override fun onChatFailure(code: Int, message: String) {
-        TODO("Not yet implemented")
+        Log.d(tag, "onChatFailure()/code: $code, message: $message")
     }
 }

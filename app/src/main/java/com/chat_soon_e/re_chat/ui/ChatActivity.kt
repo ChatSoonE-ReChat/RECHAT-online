@@ -9,27 +9,23 @@ import android.util.Log
 import android.view.*
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
-import android.widget.PopupMenu
 import android.widget.PopupWindow
 import androidx.activity.viewModels
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.chat_soon_e.re_chat.ApplicationClass
 import com.chat_soon_e.re_chat.R
 import com.chat_soon_e.re_chat.data.local.AppDatabase
 import com.chat_soon_e.re_chat.databinding.ActivityChatBinding
 import com.chat_soon_e.re_chat.utils.getID
 import com.chat_soon_e.re_chat.databinding.ItemFolderListBinding
-import android.content.Intent
-import androidx.lifecycle.ViewModelProvider
-import androidx.recyclerview.widget.DiffUtil
 import com.chat_soon_e.re_chat.data.remote.chat.ChatList
 import com.chat_soon_e.re_chat.data.remote.chat.ChatService
 import com.chat_soon_e.re_chat.data.remote.folder.FolderList
 import com.chat_soon_e.re_chat.data.remote.folder.FolderService
 import com.chat_soon_e.re_chat.databinding.ItemChatBinding
-import com.chat_soon_e.re_chat.ui.ViewModel.ChatTypeViewModel
+import com.chat_soon_e.re_chat.ui.view_model.ChatTypeViewModel
+
 import com.chat_soon_e.re_chat.ui.view.ChatView
 import com.chat_soon_e.re_chat.ui.view.FolderListView
 import com.chat_soon_e.re_chat.ui.view.GetChatView
@@ -37,36 +33,44 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 //채팅의 폴더 리스트
-class ChatActivity : BaseActivity<ActivityChatBinding>(ActivityChatBinding::inflate),ChatView,GetChatView, FolderListView {
-    private var isFabOpen = false    // FAB(FloatingActionButton)가 열렸는지 체크해주는 변수
+// 순서
+//1. 리사이클러뷰 초기화,(데이터 X)
+//2. 서버 API 데이터 받아오기
+//3. recyclerview 데이터 넘기기
+
+class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::inflate),
+    ChatView, GetChatView, FolderListView {
     private lateinit var fabOpen: Animation
     private lateinit var fabClose: Animation
     private lateinit var database: AppDatabase
-    private var folderList = ArrayList<FolderList>()
     private lateinit var chatRVAdapter: ChatRVAdapter
-    private val chatViewTypeModel: ChatTypeViewModel by viewModels()
-    private lateinit var mPopupWindow: PopupWindow
-    private var chatList = ArrayList<ChatList>()
+    private lateinit var folderListRVAdapter: FolderListRVAdapter
     private lateinit var chatListData: ChatList
+    private lateinit var mPopupWindow: PopupWindow
+    private lateinit var folderService: FolderService
+    private lateinit var chatService: ChatService
+
+    private val chatTypeViewModel: ChatTypeViewModel by viewModels()
+    private var isFabOpen = false    // FAB(FloatingActionButton)가 열렸는지 체크해주는 변수
     private val userID = getID()
     private val tag = "ACT/CHAT"
-
-    private lateinit var folderService:FolderService
-    private lateinit var chatService:ChatService
+    private var chatList = ArrayList<ChatList>()
+    private var folderList = ArrayList<FolderList>()
 
     override fun initAfterBinding() {
         //initData()
         Log.d("AlluserIDCheck", "onChatAct $userID")
+        folderService = FolderService()
+        chatService = ChatService()
         initFab()
         initData()
-        initRecyclerView()
         initClickListener()
     }
 
-    override fun onResume() {
-        super.onResume()
-        initData()
-    }
+//    override fun onResume() {
+//        super.onResume()
+//        initData()
+//    }
 
     // FAB 애니메이션 초기화
     private fun initFab() {
@@ -74,16 +78,29 @@ class ChatActivity : BaseActivity<ActivityChatBinding>(ActivityChatBinding::infl
         fabClose = AnimationUtils.loadAnimation(this, R.anim.fab_close)
     }
 
-    // RecyclerView
-    private fun initRecyclerView() {
+    //MainActivity로 부터 데이터를 가져온다.
+    private fun initData() {
+        if (intent.hasExtra("chatListJson")) {
+            chatListData = intent.getSerializableExtra("chatListJson") as ChatList
+            if (chatListData.groupName == null || chatListData.groupName == "null")
+                binding.chatNameTv.text = chatListData.chatName
+            else
+                binding.chatNameTv.text = chatListData.groupName
+            Log.d("chatListInitData", chatListData.toString())
+        }
+        initChat()
+    }
 
+
+    // 전체폴더 목록 가져오기 (숨김폴더 제외)
+    private fun initFolder() {
+        folderListRVAdapter = FolderListRVAdapter(this)
+        folderService.getFolderList(this, userID)
+    }
+
+    // 갠톡 or 단톡 가져오기
+    private fun initChat() {
         val size = windowManager.currentWindowMetricsPointCompat()
-        database = AppDatabase.getInstance(this)!!
-
-        val linearLayoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, true)
-        linearLayoutManager.stackFromEnd = true
-        binding.chatChatRecyclerView.layoutManager = linearLayoutManager
-
         chatRVAdapter = ChatRVAdapter(this, size, object : ChatRVAdapter.MyItemClickListener {
             // 채팅 삭제
             override fun onRemoveChat() {
@@ -95,7 +112,8 @@ class ChatActivity : BaseActivity<ActivityChatBinding>(ActivityChatBinding::infl
                 for(i in selectedList){
                     chatService.deleteChat(this@ChatActivity, userID, i)
                 }
-         }
+                // 하고나서 liveData 를 어떻게 ?? ================== 해결해야 할 부분
+            }
 
             // 선택 모드
             override fun onChooseChatClick(view: View, position: Int) {
@@ -104,8 +122,18 @@ class ChatActivity : BaseActivity<ActivityChatBinding>(ActivityChatBinding::infl
 
             }
         })
+        chatService.getChat(this, userID, chatListData.chatIdx, chatListData.groupName)
+   }
 
-        chatViewTypeModel.mode.observe(this) {
+    // RecyclerView
+    private fun initRecyclerView() {
+        database = AppDatabase.getInstance(this)!!
+
+        val linearLayoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, true)
+        linearLayoutManager.stackFromEnd = true
+        binding.chatChatRecyclerView.layoutManager = linearLayoutManager
+
+        chatTypeViewModel.mode.observe(this) {
             if (it == 0) {
                 // 일반 모드
                 chatRVAdapter.clearSelectedItemList()
@@ -122,11 +150,6 @@ class ChatActivity : BaseActivity<ActivityChatBinding>(ActivityChatBinding::infl
         // 어댑터 연결
         binding.chatChatRecyclerView.adapter = chatRVAdapter
 
-        // ViewModel 을 이용한 리스트 초기화
-//        val chatViewModel=ViewModelProvider(this).get(ChatViewModel::class.java)
-//        chatViewModel.getChatLiveData(this, userID, chatListData.chatIdx, chatListData.groupName).observe(this) {
-//            chatRVAdapter.addItem(it)//끝?
-//        }
         // 서버로부터 데이터 받기
         val chatService=ChatService()
         chatService.getChat(this, userID, chatListData.chatIdx, chatListData.groupName)
@@ -148,24 +171,23 @@ class ChatActivity : BaseActivity<ActivityChatBinding>(ActivityChatBinding::infl
 
             // 일반 모드로
             chatRVAdapter.clearSelectedItemList()
-            chatViewTypeModel.setMode(mode = 0)
+            chatTypeViewModel.setMode(mode = 0)
         }
     }
-
 
     private fun initClickListener() {
         // 메인 FAB 버튼 눌렀을 때
         binding.chatMainFab.setOnClickListener {
-            if (chatViewTypeModel.mode.value == 0) {
-                chatViewTypeModel.setMode(mode = 1)
+            if (chatTypeViewModel.mode.value == 0) {
+                chatTypeViewModel.setMode(mode = 1)
             } else {
-                chatViewTypeModel.setMode(mode = 0)
+                chatTypeViewModel.setMode(mode = 0)
             }
             if (isFabOpen) {
                 // fab 버튼이 열려있는 경우 (선택 모드에서 클릭했을 때)
                 // 폴더로 보내는 팝업창을 띄운다.
                 // 여기서 view는 클릭된 뷰를 의미한다.
-                popupWindowToFolderMenu()
+                initFolder()
             } else {
                 // fab 버튼이 닫혀있는 경우 (일반 모드에서 클릭했을 때)
                 binding.chatMainFab.setImageResource(R.drawable.navi_center_cloud_move)
@@ -190,7 +212,7 @@ class ChatActivity : BaseActivity<ActivityChatBinding>(ActivityChatBinding::infl
             if (data != null)
                 chatListData = data
             chatRVAdapter.clearSelectedItemList()
-            chatViewTypeModel.setMode(mode = 0)
+            chatTypeViewModel.setMode(mode = 0)
 
             binding.chatMainFab.setImageResource(R.drawable.navi_center_cloud)
             ObjectAnimator.ofFloat(binding.chatCancelFab, "translationY", 0f).apply { start() }
@@ -204,28 +226,13 @@ class ChatActivity : BaseActivity<ActivityChatBinding>(ActivityChatBinding::infl
 
             // 일반 모드로
             chatRVAdapter.clearSelectedItemList()
-            chatViewTypeModel.setMode(mode = 0)
+            chatTypeViewModel.setMode(mode = 0)
         }
 
         binding.chatBackIv.setOnClickListener {
             finish()
         }
     }
-
-    //MainActivity로 부터 데이터를 가져온다.
-    private fun initData() {
-        var chatService=ChatService()
-        if (intent.hasExtra("chatListJson")) {
-            chatListData = intent.getSerializableExtra("chatListJson") as ChatList
-            if (chatListData.groupName == null || chatListData.groupName == "null")
-                binding.chatNameTv.text = chatListData.chatName
-            else
-                binding.chatNameTv.text = chatListData.groupName
-            Log.d("chatListInitData", chatListData.toString())
-        }
-        chatService.getChat(this,userID,chatListData.chatIdx, chatListData.groupName)
-    }
-
     override fun onBackPressed() {
 //        startActivity(Intent(this,MainActivity::class.java))
         finish()
@@ -234,10 +241,6 @@ class ChatActivity : BaseActivity<ActivityChatBinding>(ActivityChatBinding::infl
     // 폴더로 보내기 팝업 윈도우
     @SuppressLint("InflateParams")
     private fun popupWindowToFolderMenu() {
-
-        // Server API: 전체폴더 목록 가져오기 (숨김폴더 제외)
-        folderService=FolderService()
-        folderService.getFolderList(this, userID)
 //        val folderListViewModel=ViewModelProvider(this).get(FolderListViewModel::class.java)
 //        folderListViewModel.getFolderListLiveData(this, userID).observe(this) {
 //            folderList.clear()
@@ -272,7 +275,7 @@ class ChatActivity : BaseActivity<ActivityChatBinding>(ActivityChatBinding::infl
 
         // RecyclerView 초기화
         // 더미 데이터와 어댑터 연결
-        val folderListRVAdapter = FolderListRVAdapter(this@ChatActivity)
+        folderListRVAdapter.addFolderList(this.folderList)
         recyclerView.adapter = folderListRVAdapter
         folderListRVAdapter.setMyItemClickListener(object :
             FolderListRVAdapter.MyItemClickListener {
@@ -298,7 +301,8 @@ class ChatActivity : BaseActivity<ActivityChatBinding>(ActivityChatBinding::infl
         if(folderList!=null)
             folderListRVAdapter.addFolderList(folderList)
 
-        // ViewModel을 이용한 folderList 업데이트
+        folderService = FolderService()
+        folderService.getFolderList(this, userID)
 //        folderListViewModel.getFolderListLiveData(this, userID).observe(this) {
 //            folderListRVAdapter.addFolderList(it as ArrayList<FolderList>)
 //        }
@@ -340,13 +344,17 @@ class ChatActivity : BaseActivity<ActivityChatBinding>(ActivityChatBinding::infl
     }
     override fun onGetChatSuccess(chats: ArrayList<ChatList>) {
         // 성공시
-        chatRVAdapter.addItem(chats)
+        this.chatList.clear()
+        this.chatList.addAll(chats)
+        initRecyclerView()
     }
 
     override fun onFolderListSuccess(folderList: ArrayList<FolderList>) {
-        // 성공시
-//        folderList.clear()
-//        folderList.addAll(folderList)
+        // 성공 시
+        Log.d(tag, "onFolderListSuccess()/folderList: $folderList")
+        this.folderList.clear()
+        this.folderList.addAll(folderList)
+        popupWindowToFolderMenu()
     }
 
     override fun onFolderListFailure(code: Int, message: String) {
