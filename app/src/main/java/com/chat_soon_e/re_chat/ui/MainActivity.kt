@@ -154,15 +154,6 @@ class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelected
                 startActivity(intent)
 
                 mainRVAdapter.clearSelectedItemList()
-
-                // 눌렀을 경우 확인한 게 되므로 isNew = false(0)이 된다.
-                val database = AppDatabase.getInstance(this@MainActivity)!!
-
-                // isNew를 어떻게 처리해야 할까?
-                // 서버 API가 따로 필요하지 않을까?
-                for(i in chatList) {
-                    if(i.chatIdx == chat.chatIdx) i.isNew = 0
-                }
             }
         })
 
@@ -172,13 +163,12 @@ class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelected
 
     // RecyclerView
     private fun initRecyclerView() {
+        mainRVAdapter.addItem(this.chatList)
+
         // LinearLayoutManager 설정
         val linearLayoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, true)
         linearLayoutManager.stackFromEnd = true
         binding.mainContent.mainChatListRecyclerView.layoutManager = linearLayoutManager
-
-        // 전체 채팅목록 가져오기 (메인화면)
-        initChatList()
 
         // main chat list view model
         chatTypeViewModel.mode.observe(this) {
@@ -188,6 +178,7 @@ class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelected
                 binding.mainContent.mainFolderIv.visibility = View.VISIBLE
                 binding.mainContent.mainFolderModeIv.visibility = View.GONE
                 binding.mainContent.mainCancelIv.visibility = View.GONE
+                binding.mainContent.mainUpdateIv.visibility = View.VISIBLE
                 binding.mainContent.mainBlockListIv.visibility = View.VISIBLE
                 binding.mainContent.mainDeleteIv.visibility = View.GONE
                 binding.mainContent.mainMyFolderIv.visibility = View.VISIBLE
@@ -200,6 +191,7 @@ class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelected
                 binding.mainContent.mainFolderIv.visibility = View.GONE
                 binding.mainContent.mainFolderModeIv.visibility = View.VISIBLE
                 binding.mainContent.mainCancelIv.visibility = View.VISIBLE
+                binding.mainContent.mainUpdateIv.visibility = View.GONE
                 binding.mainContent.mainBlockListIv.visibility = View.GONE
                 binding.mainContent.mainDeleteIv.visibility = View.VISIBLE
                 binding.mainContent.mainMyFolderIv.visibility = View.GONE
@@ -224,6 +216,7 @@ class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelected
             binding.mainContent.mainFolderIv.visibility = View.VISIBLE
             binding.mainContent.mainFolderModeIv.visibility = View.GONE
             binding.mainContent.mainCancelIv.visibility = View.GONE
+            binding.mainContent.mainUpdateIv.visibility = View.VISIBLE
             binding.mainContent.mainBackgroundView.visibility = View.INVISIBLE
             binding.mainContent.mainBlockIv.visibility = View.GONE
         }
@@ -358,7 +351,6 @@ class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelected
             Log.d(tag, "내폴더 아이콘 클릭")
         }
 
-
         binding.mainContent.mainBlockListIv.setOnClickListener {
             // 채팅목록/유저 차단하기
             val chatList = mainRVAdapter.getSelectedItem()
@@ -372,6 +364,8 @@ class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelected
                 }
             }
         }
+
+        // 차단 목록으로 이동
         binding.mainContent.mainBlockListIv.setOnClickListener {
             startActivity(Intent(this@MainActivity, BlockListActivity::class.java))
             Log.d(tag, "차단하기로")
@@ -394,6 +388,7 @@ class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelected
         // 선택 모드 시
         chatTypeViewModel.mode.observe(this) {
             if (it == 1) {
+
                 // 해당 chat 삭제
                 binding.mainContent.mainDeleteIv.setOnClickListener {
                     mainRVAdapter.removeSelectedItemList()
@@ -405,9 +400,11 @@ class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelected
                     binding.mainContent.mainFolderIv.visibility = View.VISIBLE
                     binding.mainContent.mainFolderModeIv.visibility = View.GONE
                     binding.mainContent.mainCancelIv.visibility = View.GONE
+                    binding.mainContent.mainUpdateIv.visibility = View.VISIBLE
                     binding.mainContent.mainBackgroundView.visibility = View.INVISIBLE
                     binding.mainContent.mainBlockIv.visibility = View.GONE
                 }
+
                 // 해당 chat 차단
                 binding.mainContent.mainBlockIv.setOnClickListener {
                     mainRVAdapter.blockSelectedItemList()
@@ -419,6 +416,7 @@ class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelected
                     binding.mainContent.mainFolderIv.visibility = View.VISIBLE
                     binding.mainContent.mainFolderModeIv.visibility = View.GONE
                     binding.mainContent.mainCancelIv.visibility = View.GONE
+                    binding.mainContent.mainUpdateIv.visibility = View.VISIBLE
                     binding.mainContent.mainBackgroundView.visibility = View.INVISIBLE
                     binding.mainContent.mainBlockIv.visibility = View.GONE
                 }
@@ -429,6 +427,19 @@ class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelected
             headerView.setOnClickListener {
                 binding.mainDrawerLayout.closeDrawer(GravityCompat.START)
             }
+        }
+
+        // 설정 메뉴창을 여는 메뉴 아이콘 클릭시 설정 메뉴창 열리도록
+        binding.mainContent.mainSettingMenuIv.setOnClickListener {
+            if(!binding.mainDrawerLayout.isDrawerOpen(GravityCompat.START)) {
+                // 설정 메뉴창이 닫혀있을 때
+                binding.mainDrawerLayout.openDrawer(GravityCompat.START)
+            }
+        }
+
+        // 업데이트 아이콘 클릭 시
+        binding.mainContent.mainUpdateIv.setOnClickListener {
+            initChatList()
         }
     }
 
@@ -479,13 +490,11 @@ class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelected
                 val chatList = mainRVAdapter.getSelectedItem()
                 Log.d(tag, "chatList: $chatList")
 
-                // 폴더의 id를 가져옴
-                val folderIdx = folderList[itemPosition].folderIdx
                 // 갠톡 이동: folderIdx, otherUserIdx
                 // 단톡 이동: folderIdx, userIdx, groupName
                 // 서버 API에서는 따로 구분해두지 않아 일단 하나로 작성
                 for (i in chatList) {
-                    chatService.addChatToFolder(this@MainActivity, userID, i.chatIdx, folderIdx)
+                    chatService.addChatToFolder(this@MainActivity, userID, i.chatIdx, folderList[itemPosition])
                 }
 
                 // 팝업 윈도우를 꺼주는 역할
@@ -530,6 +539,7 @@ class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelected
             binding.mainContent.mainFolderIv.visibility = View.VISIBLE
             binding.mainContent.mainFolderModeIv.visibility = View.GONE
             binding.mainContent.mainCancelIv.visibility = View.GONE
+            binding.mainContent.mainUpdateIv.visibility = View.VISIBLE
             binding.mainContent.mainBackgroundView.visibility = View.INVISIBLE
             binding.mainContent.mainBlockIv.visibility = View.GONE
         }

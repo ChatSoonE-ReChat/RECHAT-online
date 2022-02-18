@@ -17,7 +17,6 @@ data class ChatResponse(
     @SerializedName("result") val result: JsonArray?
 )
 
-
 //채팅 추가하기
 data class Chat(
     @SerializedName("nickname") var chatName: String,
@@ -30,22 +29,12 @@ data class Chat(
 // 차단된 톡방 목록 가져오기
 data class BlockedChatList(
     @SerializedName("blocked_name") val blockedName: String,
-    @SerializedName("blocked_profileImg") val blockedProfileImg: String,
+    @SerializedName("blocked_profileImg") val blockedProfileImg: String?,
     @SerializedName("groupName") val groupName: String?,
     @SerializedName("status") val status: String
 )
 
-// 갠톡 or 단톡 채팅 가져오기 -> RoomDB의 ChatList 활용
-//data class Chats(
-//    val nickname:String,
-//    val profileImgUrl:String?,
-//    val message: String,
-//    @SerializedName("post_time")val postTime: String,
-//    @SerializedName("groupName") val groupName: String?
-//)
-
 // 전체 채팅목록 가져오기 (메인화면), 채팅 가져오기
-
 data class ChatList(
     @SerializedName("chatIdx") var chatIdx: Int,
     @SerializedName("chat_name") var chatName: String,
@@ -53,7 +42,6 @@ data class ChatList(
     @SerializedName("latest_time") var latestTime: String?,
     @SerializedName("latest_message") var latestMessage: String,
     @SerializedName("groupName") var groupName: String?,
-    @SerializedName("isNew") var isNew: Int = 1,
 ): Serializable {
     @PrimaryKey(autoGenerate = true) var id: Int? = 0
     @Ignore
@@ -67,7 +55,13 @@ object ChatListViewType {
 }
 
 // 폴더 안의 채팅 가져오기 -> FolderContent 활용
-data class FolderChatResponse(@SerializedName("isSuccess")val isSuccess: Boolean, @SerializedName("code") val code:Int, val message: String, val result:JsonArray?)
+data class FolderChatResponse(
+    @SerializedName("isSuccess") val isSuccess: Boolean,
+    @SerializedName("code") val code:Int,
+    val message: String,
+    val result:JsonArray?
+)
+
 // 폴더 안의 채팅 가져오기
 data class FolderContent(
     @SerializedName("chatIdx") val chatIdx: Int,
@@ -75,7 +69,5 @@ data class FolderContent(
     @SerializedName("nickname") val nickname: String,
     @SerializedName("profileImgUrl") val profileImgUrl: String?,
     @SerializedName("message") val message: String,
-    @SerializedName("chat_date") val chatDate: String?,
     @SerializedName("post_time") val postTime: String
 )
-

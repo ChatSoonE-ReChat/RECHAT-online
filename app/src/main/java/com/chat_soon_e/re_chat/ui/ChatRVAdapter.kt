@@ -166,7 +166,7 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val size: Point,
 
     // 디폴트 뷰홀더
     inner class DefaultViewHolder(private val binding: ItemChatBinding): RecyclerView.ViewHolder(binding.root) {
-        init {
+//        init {
 //            binding.itemChatDefaultMessageTv.setOnLongClickListener {
 //                Log.d(tag, "absoluteAdapterPosition: $absoluteAdapterPosition")
 //                Log.d(tag, "bindingAdapterPosition: $bindingAdapterPosition")
@@ -176,7 +176,7 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val size: Point,
 //                mItemClickListener.onDefaultChatLongClick(binding, chatList[absoluteAdapterPosition].chatIdx)
 //                return@setOnLongClickListener false
 //            }
-        }
+//        }
 
         @SuppressLint("SimpleDateFormat")
         @RequiresApi(Build.VERSION_CODES.O)
@@ -262,16 +262,16 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val size: Point,
 //        val dateAsString = simpleDateFormat2.format(dateAsDate!!)
 
         // 오늘이 아니라면 날짜만
-        if(dateAsDate.year == today.year && dateAsDate.month == today.month && dateAsDate.date==today.date){
+        str = if(dateAsDate.year == today.year && dateAsDate.month == today.month && dateAsDate.date==today.date){
             val time = SimpleDateFormat("a h:mm")
-            str = time.format(dateAsDate).toString()
+            time.format(dateAsDate).toString()
         } else{
             // simpleDateFormat은 thread에 안전하지 않습니다.
             // DateTimeFormatter을 사용합시다. 아! Date를 LocalDate로도 바꿔야합니다!
             // val time_formatter=DateTimeFormatter.ofPattern("MM월 dd일")
             // date.format(time_formatter)
             val time = SimpleDateFormat("a h:mm")
-            str = time.format(dateAsDate).toString()
+            time.format(dateAsDate).toString()
         }
         return str
     }
@@ -304,7 +304,7 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val size: Point,
             // DateTimeFormatter을 사용합시다. 아! Date를 LocalDate로도 바꿔야합니다!
             // val time_formatter=DateTimeFormatter.ofPattern("MM월 dd일")
             // date.format(time_formatter)
-            val time = SimpleDateFormat("M월 d일")
+            val time = SimpleDateFormat("a h:mm")
             str = time.format(dateAsDate).toString()
         }
         return str
@@ -317,7 +317,7 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val size: Point,
         val simpleDateFormat1 = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
         val currentDateAsDate = simpleDateFormat1.parse(date)
 
-        val previousDateAsDate = simpleDateFormat1.parse(chatList[position + 1].latestTime)
+        val previousDateAsDate = simpleDateFormat1.parse(chatList[position + 1].latestTime!!)
 
         val previousLocalDate = previousDateAsDate!!.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
         val currentLocalDate = currentDateAsDate!!.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()

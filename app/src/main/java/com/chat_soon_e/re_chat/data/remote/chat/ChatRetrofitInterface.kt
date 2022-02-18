@@ -1,5 +1,6 @@
 package com.chat_soon_e.re_chat.data.remote.chat
 
+import com.chat_soon_e.re_chat.data.remote.folder.FolderList
 import retrofit2.Call
 import retrofit2.http.*
 
@@ -52,7 +53,7 @@ interface ChatRetrofitInterface {
     fun addChatToFolder(
         @Path("kakaoUserIdx") kakaoUserIdx: Long,
         @Query("chatIdx") chatIdx: Int,
-        @Body folderInx: Int
+        @Body folder: FolderList
     ): Call<ChatResponse>
 
     // 폴더에 채팅목록의 채팅(갠톡/단톡) 모두 추가하기
@@ -61,7 +62,7 @@ interface ChatRetrofitInterface {
         @Path("kakaoUserIdx") kakaoUserIdx: Long,
         @Query("chatIdx") chatIdx: Int,
         @Query("groupName") groupName: String?,
-        @Body folderIdx: Int
+        @Body folder: FolderList
     ): Call<ChatResponse>
 
     // 폴더에서 채팅 삭제하기
