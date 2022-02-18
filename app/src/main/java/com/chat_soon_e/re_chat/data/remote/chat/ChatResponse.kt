@@ -47,7 +47,7 @@ data class ChatList(
     @SerializedName("chatIdx") var chatIdx: Int,
     @SerializedName("chat_name") var chatName: String,
     @SerializedName("profile_image") var profileImg: String?,
-    @SerializedName("latest_time") var latestTime: String,
+    @SerializedName("latest_time") var latestTime: String?,
     @SerializedName("latest_message") var latestMessage: String,
     @SerializedName("groupName") var groupName: String?,
     @SerializedName("isNew") var isNew: Int = 1,

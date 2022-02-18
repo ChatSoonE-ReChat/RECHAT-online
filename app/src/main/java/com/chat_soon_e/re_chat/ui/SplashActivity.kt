@@ -182,6 +182,7 @@ class SplashActivity: AppCompatActivity(), UserView {
                         val kakaoUserIdx = com.chat_soon_e.re_chat.data.remote.user.User(user.id)
                         val userService = UserService()
                         userService.addKakaoUser(this, kakaoUserIdx)
+
                         Log.d(tag, "Server API: ${user.id}")
                     } else if(state == "logout") {
                         // 로그아웃 시

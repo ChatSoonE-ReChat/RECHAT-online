@@ -190,7 +190,7 @@ class MainRVAdapter(private val context: Context, private val mItemClickListener
 
             binding.itemChatListNameTv.text = chat.chatName
             binding.itemChatListContentTv.text = chat.latestMessage
-            binding.itemChatListDateTimeTv.text = convertDate(chat.latestTime)
+            binding.itemChatListDateTimeTv.text = chat.latestTime?.let { convertDate(it) }
 
             Log.d(tag, "bind()/isNew: ${chat.isNew}")
 
@@ -218,7 +218,7 @@ class MainRVAdapter(private val context: Context, private val mItemClickListener
             else if(chat.groupName !=null || chat.groupName!="null") binding.itemChatListProfileIv.setImageResource(R.drawable.ic_profile_black_no_circle)
             binding.itemChatListNameTv.text = chat.chatName
             binding.itemChatListContentTv.text = chat.latestMessage
-            binding.itemChatListDateTimeTv.text = convertDate(chat.latestTime)
+            binding.itemChatListDateTimeTv.text = chat.latestTime?.let { convertDate(it) }
         }
     }
 

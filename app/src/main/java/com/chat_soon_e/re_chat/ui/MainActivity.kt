@@ -34,10 +34,7 @@ import com.chat_soon_e.re_chat.data.remote.folder.FolderList
 import com.chat_soon_e.re_chat.data.remote.folder.FolderService
 import com.chat_soon_e.re_chat.ui.view.*
 import com.chat_soon_e.re_chat.databinding.ItemFolderListBinding
-import com.chat_soon_e.re_chat.ui.ViewModel.ChatListViewModel
 import com.chat_soon_e.re_chat.ui.ViewModel.ChatTypeViewModel
-import com.chat_soon_e.re_chat.ui.ViewModel.ChatViewModel
-import com.chat_soon_e.re_chat.ui.ViewModel.FolderListViewModel
 import com.chat_soon_e.re_chat.utils.getID
 import com.chat_soon_e.re_chat.utils.permissionGrantred
 import com.google.android.material.navigation.NavigationView
@@ -133,25 +130,26 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
 //            database.folderDao().insert(Folder(userID, "구르미 하나", R.drawable.folder_default))
 //            database.folderDao().insert(Folder(userID, "구르미 둘", R.drawable.folder_default))
 //        }
-
-        val folderListViewModel = ViewModelProvider(this).get(FolderListViewModel::class.java)
-        folderListViewModel.getFolderListLiveData(this, userID).observe(this) {
-            folderList = it as ArrayList<FolderList>
-            Log.d(tag, "folderList: $folderList")
-        }
+//        folderService.getFolderList(this, userID)
+//        val folderListViewModel = ViewModelProvider(this).get(FolderListViewModel::class.java)
+//        folderListViewModel.getFolderListLiveData(this, userID).observe(this) {
+//            folderList = it as ArrayList<FolderList>
+//            Log.d(tag, "folderList: $folderList")
+//        }
     }
 
     private fun getChatListLiveData() {
         // 전체 채팅목록 가져오기 (메인화면)
         chatService.getChatList(this, userID)
 
-        val chatListViewModel = ViewModelProvider(this).get(ChatListViewModel::class.java)
-        chatListViewModel.getChatListLiveData(this, userID).observe(this) {
-            mainRVAdapter.addItem(it)
-            chatList.clear()
-            chatList.addAll(it)
-            binding.mainContent.mainChatListRecyclerView.scrollToPosition(mainRVAdapter.itemCount - 1)
-        }
+//        val chatListViewModel = ViewModelProvider(this).get(ChatListViewModel::class.java)
+//        chatListViewModel.getChatListLiveData(this, userID).observe(this) {
+//            mainRVAdapter.addItem(it)
+//            //Log.d(tag, it.toString())
+//            chatList.clear()
+//            chatList.addAll(it)
+//            binding.mainContent.mainChatListRecyclerView.scrollToPosition(mainRVAdapter.itemCount - 1)
+//        }
     }
 
     // RecyclerView
@@ -482,11 +480,16 @@ class MainActivity: NavigationView.OnNavigationItemSelectedListener, AppCompatAc
         val folderListRVAdapter = FolderListRVAdapter(this@MainActivity)
         val popupFolderList = ArrayList<FolderList>()
 
-        val folderListViewModel = ViewModelProvider(this).get(FolderListViewModel::class.java)
-        folderListViewModel.getFolderListLiveData(this, userID).observe(this) {
-            popupFolderList.addAll(it)
-            folderListRVAdapter.addFolderList(popupFolderList)
+        folderService.getFolderList(this, userID)
+        if(folderList!=null){
+            popupFolderList.addAll(folderList)
+            folderListRVAdapter.addFolderList(folderList)
         }
+//        val folderListViewModel = ViewModelProvider(this).get(FolderListViewModel::class.java)
+//        folderListViewModel.getFolderListLiveData(this, userID).observe(this) {
+//            popupFolderList.addAll(it)
+//            folderListRVAdapter.addFolderList(popupFolderList)
+//        }
 
         recyclerView.adapter = folderListRVAdapter
         folderListRVAdapter.setMyItemClickListener(object :

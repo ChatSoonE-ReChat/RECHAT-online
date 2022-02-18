@@ -13,7 +13,6 @@ import com.chat_soon_e.re_chat.data.remote.chat.FolderContent
 import com.chat_soon_e.re_chat.data.remote.folder.FolderList
 import com.chat_soon_e.re_chat.data.remote.folder.FolderService
 import com.chat_soon_e.re_chat.databinding.ActivityFolderContentBinding
-import com.chat_soon_e.re_chat.ui.ViewModel.FolderContentViewModel
 import com.chat_soon_e.re_chat.ui.view.ChatView
 import com.chat_soon_e.re_chat.ui.view.GetFolderContentView
 import com.chat_soon_e.re_chat.utils.getID
@@ -26,6 +25,7 @@ class FolderContentActivity: BaseActivity<ActivityFolderContentBinding>(Activity
     private lateinit var folderContentRVAdapter: FolderContentRVAdapter
     lateinit var folderInfo: FolderList
     private val userID = getID()
+    private val folderListContent=ArrayList<FolderContent>()
     private val tag = "ACT/FOLDER-CONTENT"
     private lateinit var folderService:FolderService
     private lateinit var chatService: ChatService
@@ -36,6 +36,11 @@ class FolderContentActivity: BaseActivity<ActivityFolderContentBinding>(Activity
         initData()
         initRecyclerView()
         initClickListener()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        initData()
     }
 
     // FolderContent 데이터 초기화
@@ -49,6 +54,10 @@ class FolderContentActivity: BaseActivity<ActivityFolderContentBinding>(Activity
             binding.folderContentNameTv.text = folderInfo.folderName
             Log.d(tag, "data: $folderInfo")
         }
+        folderService= FolderService()
+        chatService.getFolderContent(this, userID, folderInfo.folderIdx)
+
+
     }
     //해당 폴더를 눌렀을떄 요기로 오게 된다
 
@@ -57,7 +66,7 @@ class FolderContentActivity: BaseActivity<ActivityFolderContentBinding>(Activity
         // 휴대폰 윈도우 사이즈를 가져온다.
         val size = windowManager.currentWindowMetricsPointCompat()
 
-        database = AppDatabase.getInstance(this)!!
+       // database = AppDatabase.getInstance(this)!!
         folderService= FolderService()
 
         // FolderContent 데이터를 RecyclerView 어댑터와 연결
@@ -67,11 +76,14 @@ class FolderContentActivity: BaseActivity<ActivityFolderContentBinding>(Activity
 //            Log.d("folderDatacheck: ", it.toString())
 //        }
 
-        // ViewModel: Folder 안의 채팅들을 불러오기. FolderViewModel
-        val folderContentViewModel=ViewModelProvider(this).get(FolderContentViewModel::class.java)
-        folderContentViewModel.getFolderContentLiveData(this, userID, folderInfo.folderIdx).observe(this){
-            folderContentRVAdapter.addItem(it)
-        }
+//        // ViewModel: Folder 안의 채팅들을 불러오기. FolderViewModel
+//        val folderContentViewModel=ViewModelProvider(this).get(FolderContentViewModel::class.java)
+//        folderContentViewModel.getFolderContentLiveData(this, userID, folderInfo.folderIdx).observe(this){
+//            folderContentRVAdapter.addItem(it)
+//        }
+
+        // ServerAPI: 폴더 안의 채팅들 불러오기
+        chatService.getFolderContent(this, userID, folderInfo.folderIdx)
 
 
         // RecyclerView click listener 초기화
@@ -79,7 +91,6 @@ class FolderContentActivity: BaseActivity<ActivityFolderContentBinding>(Activity
             // 채팅 삭제
             override fun onRemoveChat(chatIdx: Int) {
                 chatService.deleteChatFromFolder(this@FolderContentActivity, userID, chatIdx, folderInfo.folderIdx)
-                //database.folderContentDao().deleteChat(folderInfo.idx, chatIdx)
             }
 
             // 채팅 롱클릭 시 팝업 메뉴
@@ -116,6 +127,9 @@ class FolderContentActivity: BaseActivity<ActivityFolderContentBinding>(Activity
     }
 
     override fun onGetFolderContentSuccess(folderContents: ArrayList<FolderContent>) {
+        //혹시 몰라서
+        folderListContent.addAll(folderContents)
+        folderContentRVAdapter.addItem(folderContents)
         TODO("Not yet implemented")
     }
 

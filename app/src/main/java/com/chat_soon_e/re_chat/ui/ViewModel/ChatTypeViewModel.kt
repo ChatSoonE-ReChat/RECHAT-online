@@ -10,7 +10,7 @@ class ChatTypeViewModel: ViewModel() {
     init {
         _mode.value = 0
     }
-
+//요걸로 써야함!
     fun setMode(mode: Int) {
         _mode.value = mode
     }

@@ -72,6 +72,7 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val size: Point,
 
     @SuppressLint("NotifyDataSetChanged")
     fun removeChat():ChatList? {
+        // DB 에서 지우고
         mItemClickListener.onRemoveChat()
         chatList =chatList.filter{chatlist->!chatlist.isChecked} as ArrayList<ChatList>
         notifyDataSetChanged()
@@ -188,14 +189,15 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val size: Point,
 
             binding.itemChatDefaultNameTv.text = chat.chatName
             binding.itemChatDefaultMessageTv.text = chat.latestMessage
-            binding.itemChatDefaultDateTimeTv.text = convertDateAtDefault(binding, chat.latestTime)
+            binding.itemChatDefaultDateTimeTv.text =
+                chat.latestTime?.let { convertDateAtDefault(binding, it) }
             binding.itemChatDefaultProfileIv.setImageBitmap(loadBitmap(chat.profileImg!!, mContext))
 
-            if(bindingAdapterPosition != (chatList.size - 1) && isNextDay(chat.latestTime, bindingAdapterPosition)) {
+            if(bindingAdapterPosition != (chatList.size - 1) && chat.latestTime?.let { isNextDay(it, bindingAdapterPosition) } == true) {
                 // 다음 날로 날짜가 바뀐 경우
                 // 혹은 날짜가 1일 이상 차이날 때
                 binding.itemChatDefaultNewDateTimeLayout.visibility = View.VISIBLE
-                binding.itemChatDefaultNewDateTimeTv.text = setNewDate(chat.latestTime)
+                binding.itemChatDefaultNewDateTimeTv.text = setNewDate(chat.latestTime!!)
             } else {
                 // 날짜가 바뀐 게 아닌 경우
                 binding.itemChatDefaultNewDateTimeLayout.visibility = View.GONE
@@ -232,14 +234,15 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val size: Point,
 
             binding.itemChatChooseNameTv.text = chat.chatName
             binding.itemChatChooseMessageTv.text = chat.latestMessage
-            binding.itemChatChooseDateTimeTv.text = convertDateAtChoose(binding, chat.latestTime)
+            binding.itemChatChooseDateTimeTv.text =
+                chat.latestTime?.let { convertDateAtChoose(binding, it) }
             binding.itemChatChooseProfileIv.setImageBitmap(loadBitmap(chat.profileImg!!, mContext))
 
-            if(bindingAdapterPosition != (chatList.size - 1) && isNextDay(chat.latestTime, bindingAdapterPosition)) {
+            if(bindingAdapterPosition != (chatList.size - 1) && chat.latestTime?.let { isNextDay(it, bindingAdapterPosition) } == true) {
                 // 다음 날로 날짜가 바뀐 경우
                 // 혹은 날짜가 1일 이상 차이날 때
                 binding.itemChatChooseNewDateTimeLayout.visibility = View.VISIBLE
-                binding.itemChatChooseNewDateTimeTv.text = setNewDate(chat.latestTime)
+                binding.itemChatChooseNewDateTimeTv.text = setNewDate(chat.latestTime!!)
             } else {
                 // 날짜가 바뀐 게 아닌 경우
                 binding.itemChatChooseNewDateTimeLayout.visibility = View.GONE

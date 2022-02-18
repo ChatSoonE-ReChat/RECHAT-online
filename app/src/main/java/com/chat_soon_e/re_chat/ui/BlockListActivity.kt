@@ -8,7 +8,6 @@ import com.chat_soon_e.re_chat.data.remote.chat.BlockedChatList
 import com.chat_soon_e.re_chat.data.remote.chat.Chat
 import com.chat_soon_e.re_chat.data.remote.chat.ChatService
 import com.chat_soon_e.re_chat.databinding.ActivityBlockListBinding
-import com.chat_soon_e.re_chat.ui.ViewModel.BlockChatViewModel
 import com.chat_soon_e.re_chat.ui.view.ChatView
 import com.chat_soon_e.re_chat.ui.view.GetBlockedChatListView
 import com.chat_soon_e.re_chat.utils.getID
@@ -37,11 +36,14 @@ class BlockListActivity:BaseActivity<ActivityBlockListBinding>(ActivityBlockList
 //        }
 
         // ViewModel: Blocked List 가져오기
-        val blockedListViewModel=ViewModelProvider(this).get(BlockChatViewModel::class.java)
-        blockedListViewModel.getBlockChatLiveData(this, userID).observe(this){
-            blockedList.clear()
-            blockedList.addAll(it)
-        }
+//        val blockedListViewModel=ViewModelProvider(this).get(BlockChatViewModel::class.java)
+//        blockedListViewModel.getBlockChatLiveData(this, userID).observe(this){
+//            blockedList.clear()
+//            blockedList.addAll(it)
+//        }
+
+        // ServerAPI: BlockedList 가져오기
+        chatService.getBlockedChatList(this, userID)
     }
 
     private fun initRecyclerView() {
@@ -57,7 +59,9 @@ class BlockListActivity:BaseActivity<ActivityBlockListBinding>(ActivityBlockList
 //                    database.chatDao().unblockOneChat(userID, blockList.blockedName)
 //                else
 //                    database.chatDao().unblockOrgChat(userID, blockList.groupName)
+                // 삭제 오류 검토
                 chatService.unblock(this@BlockListActivity,  userID, blockList.blockedName, blockList.groupName)
+                chatService.getBlockedChatList(this@BlockListActivity, userID)
             }
         })
         binding.blockListRecyclerView.adapter=blockListRVAdapter
@@ -70,7 +74,8 @@ class BlockListActivity:BaseActivity<ActivityBlockListBinding>(ActivityBlockList
     }
 
     override fun onGetBlockedChatListSuccess(blockedChatList: ArrayList<BlockedChatList>) {
-        TODO("Not yet implemented")
+        blockedList.clear()
+        blockedList.addAll(blockedChatList)
     }
 
     override fun onGetBlockedChatListFailure(code: Int, message: String) {

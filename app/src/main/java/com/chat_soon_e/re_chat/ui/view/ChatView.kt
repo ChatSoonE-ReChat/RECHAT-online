@@ -33,3 +33,9 @@ interface GetBlockedChatListView {
     fun onGetBlockedChatListSuccess(blockedChatList: ArrayList<BlockedChatList>)
     fun onGetBlockedChatListFailure(code: Int, message: String)
 }
+
+// 차단 해제하기
+// 차단을 해제하고 나서 차단된 톡방 리스트를 다시 가져와야 한다. 이건 필요 없나?
+//interface UnBlockedView{
+//    fun onUnBlockedView(blockedChatList:
+//}
