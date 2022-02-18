@@ -31,9 +31,7 @@ import com.chat_soon_e.re_chat.data.remote.folder.FolderList
 import com.chat_soon_e.re_chat.data.remote.folder.FolderService
 import com.chat_soon_e.re_chat.ui.view.*
 import com.chat_soon_e.re_chat.databinding.ItemFolderListBinding
-import com.chat_soon_e.re_chat.ui.view_model.ChatListViewModel
 import com.chat_soon_e.re_chat.ui.view_model.ChatTypeViewModel
-import com.chat_soon_e.re_chat.ui.view_model.FolderListViewModel
 import com.chat_soon_e.re_chat.utils.getID
 import com.chat_soon_e.re_chat.utils.permissionGrantred
 import com.google.android.material.navigation.NavigationView
@@ -85,9 +83,13 @@ class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelected
 //        }
 
         Log.d(tag, "onStart()/userID: $userID, USER_ID: $USER_ID")
-        initRecyclerView()
         initDrawerLayout()
         initClickListener()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        initChatList()
     }
 
     // 아이콘 초기화
@@ -118,48 +120,14 @@ class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelected
         }
     }
 
-//    // 폴더 초기화
-//    private fun getFolderListLiveData() {
-//        // 폴더 초기 세팅 (구르미 하나, 구르미 둘)
-//        // 처음 앱을 실행했다는 것을 확인할 수 있으면 폴더 초기 세팅 실행하도록 (어떻게?)
-//        if (folderList.size == 0) {
-//            database.folderDao().insert(Folder(userID, "구르미 하나", R.drawable.folder_default))
-//            database.folderDao().insert(Folder(userID, "구르미 둘", R.drawable.folder_default))
-//        }
-
-//        val folderListViewModel = ViewModelProvider(this).get(FolderListViewModel::class.java)
-//        folderListViewModel.getFolderListLiveData(this, userID).observe(this) {
-//            folderList = it as ArrayList<FolderList>
-//            Log.d(tag, "folderList: $folderList")
-//        }
-//    }
-
+    // 전체폴더 목록 가져오기 (숨김폴더 제외)
     private fun initFolder() {
-        // 전체폴더 목록 가져오기 (숨김폴더 제외)
         folderListRVAdapter = FolderListRVAdapter(this)
         folderService.getFolderList(this, userID)
     }
 
-    private fun getChatListLiveData() {
-        // 전체 채팅목록 가져오기 (메인화면)
-        chatService.getChatList(this, userID)
-
-        val chatListViewModel = ViewModelProvider(this).get(ChatListViewModel::class.java)
-        chatListViewModel.getChatListLiveData(this, userID).observe(this) {
-            mainRVAdapter.addItem(it)
-            chatList.clear()
-            chatList.addAll(it)
-            binding.mainContent.mainChatListRecyclerView.scrollToPosition(mainRVAdapter.itemCount - 1)
-        }
-    }
-
-    // RecyclerView
-    private fun initRecyclerView() {
-        // LinearLayoutManager 설정
-        val linearLayoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, true)
-        linearLayoutManager.stackFromEnd = true
-        binding.mainContent.mainChatListRecyclerView.layoutManager = linearLayoutManager
-
+    // 전체 채팅목록 가져오기 (메인화면)
+    private fun initChatList() {
         // RecyclerView Click Listener
         mainRVAdapter = MainRVAdapter(this, object : MainRVAdapter.MyItemClickListener {
             // 선택 모드
@@ -196,6 +164,20 @@ class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelected
             }
         })
 
+        // API 호출
+        chatService.getChatList(this, userID)
+    }
+
+    // RecyclerView
+    private fun initRecyclerView() {
+        // LinearLayoutManager 설정
+        val linearLayoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, true)
+        linearLayoutManager.stackFromEnd = true
+        binding.mainContent.mainChatListRecyclerView.layoutManager = linearLayoutManager
+
+        // 전체 채팅목록 가져오기 (메인화면)
+        initChatList()
+
         // main chat list view model
         chatTypeViewModel.mode.observe(this) {
             if (it == 0) {
@@ -229,9 +211,6 @@ class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelected
 
         // 어댑터 연결
         binding.mainContent.mainChatListRecyclerView.adapter = mainRVAdapter
-
-        // 최근 챗 목록 데이터 추가
-        getChatListLiveData()
 
         // 취소 버튼 클릭시 다시 초기 화면으로 (폴더 선택 모드 취소)
         binding.mainContent.mainCancelIv.setOnClickListener {
@@ -564,7 +543,9 @@ class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelected
 
     override fun onGetChatListSuccess(chatList: ArrayList<ChatList>) {
         Log.d(tag, "onGetChatListSuccess()/chatList: $chatList")
+        this.chatList.clear()
         this.chatList = chatList
+        initRecyclerView()
     }
 
     override fun onGetChatListFailure(code: Int, message: String) {

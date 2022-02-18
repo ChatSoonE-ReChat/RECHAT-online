@@ -16,7 +16,6 @@ import androidx.appcompat.widget.AppCompatButton
 import androidx.appcompat.widget.SwitchCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.view.GravityCompat
-import androidx.lifecycle.ViewModelProvider
 import com.chat_soon_e.re_chat.R
 import com.chat_soon_e.re_chat.data.local.AppDatabase
 import com.chat_soon_e.re_chat.databinding.ActivityMyFolderBinding
@@ -27,7 +26,6 @@ import com.chat_soon_e.re_chat.data.local.Icon
 import com.chat_soon_e.re_chat.data.remote.folder.FolderList
 import com.chat_soon_e.re_chat.data.remote.folder.FolderService
 import com.chat_soon_e.re_chat.databinding.ItemIconBinding
-import com.chat_soon_e.re_chat.ui.view_model.FolderListViewModel
 import com.chat_soon_e.re_chat.ui.view.*
 import com.chat_soon_e.re_chat.utils.getID
 import com.google.gson.Gson
@@ -78,8 +76,8 @@ class MyFolderActivity: BaseActivity<ActivityMyFolderBinding>(ActivityMyFolderBi
 //        }
 //    }
 
+    // 전체폴더 목록 가져오기 (숨김폴더 제외)
     private fun initFolder() {
-        // 전체폴더 목록 가져오기 (숨김폴더 제외)
         folderRVAdapter = MyFolderRVAdapter(this)
         folderService.getFolderList(this, userID)
     }

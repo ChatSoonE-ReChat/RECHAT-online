@@ -13,7 +13,6 @@ import android.widget.EditText
 import android.widget.PopupMenu
 import android.widget.PopupWindow
 import androidx.appcompat.widget.AppCompatButton
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.RecyclerView
 import com.chat_soon_e.re_chat.R
 import com.chat_soon_e.re_chat.data.local.Icon
@@ -23,7 +22,6 @@ import com.chat_soon_e.re_chat.data.remote.folder.FolderService
 import com.chat_soon_e.re_chat.databinding.ActivityHiddenFolderBinding
 import com.chat_soon_e.re_chat.databinding.ItemHiddenFolderBinding
 import com.chat_soon_e.re_chat.databinding.ItemIconBinding
-import com.chat_soon_e.re_chat.ui.view_model.HiddenFolderListViewModel
 import com.chat_soon_e.re_chat.ui.view.FolderAPIView
 import com.chat_soon_e.re_chat.ui.view.HiddenFolderListView
 import com.chat_soon_e.re_chat.utils.getID

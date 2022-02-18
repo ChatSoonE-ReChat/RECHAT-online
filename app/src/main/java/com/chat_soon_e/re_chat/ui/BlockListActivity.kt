@@ -1,12 +1,10 @@
 package com.chat_soon_e.re_chat.ui
 
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.chat_soon_e.re_chat.data.local.AppDatabase
 import com.chat_soon_e.re_chat.data.remote.chat.BlockedChatList
 import com.chat_soon_e.re_chat.data.remote.chat.ChatService
 import com.chat_soon_e.re_chat.databinding.ActivityBlockListBinding
-import com.chat_soon_e.re_chat.ui.view_model.BlockChatViewModel
 import com.chat_soon_e.re_chat.ui.view.ChatView
 import com.chat_soon_e.re_chat.ui.view.GetBlockedChatListView
 import com.chat_soon_e.re_chat.utils.getID
@@ -26,20 +24,8 @@ class BlockListActivity:BaseActivity<ActivityBlockListBinding>(ActivityBlockList
     }
 
     private fun initData() {
-//        //모든 차단된 목록을 가져온다.
-//        database = AppDatabase.getInstance(this)!!
-//
-//        database.chatDao().getBlockedChatList(userID).observe(this) {
-//            blockedList.clear()
-//            blockedList.addAll(it)
-//        }
-
-        // ViewModel: Blocked List 가져오기
-        val blockedListViewModel=ViewModelProvider(this).get(BlockChatViewModel::class.java)
-        blockedListViewModel.getBlockChatLiveData(this, userID).observe(this){
-            blockedList.clear()
-            blockedList.addAll(it)
-        }
+        //모든 차단된 목록을 가져온다.
+        database = AppDatabase.getInstance(this)!!
     }
 
     private fun initRecyclerView() {
@@ -51,10 +37,6 @@ class BlockListActivity:BaseActivity<ActivityBlockListBinding>(ActivityBlockList
         binding.blockListRecyclerView.layoutManager = linearLayoutManager
         blockListRVAdapter= BlockListRVAdapter(this, blockedList, object:BlockListRVAdapter.MyClickListener{
             override fun onRemoveChat(blockList: BlockedChatList) {
-//                if(blockList.groupName==null||blockList.groupName=="null")//개인톡
-//                    database.chatDao().unblockOneChat(userID, blockList.blockedName)
-//                else
-//                    database.chatDao().unblockOrgChat(userID, blockList.groupName)
                 chatService.unblock(this@BlockListActivity,  userID, blockList.blockedName, blockList.groupName)
             }
         })

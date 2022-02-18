@@ -123,7 +123,6 @@ class MyNotificationListener: NotificationListenerService(), ChatView {
             val out= FileOutputStream(tempFile)
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
             out.close()
-
         }catch (e: FileNotFoundException){
             Log.e("MyTag","FileNotFoundException : " + e.message);
         }catch (e: IOException) {
