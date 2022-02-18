@@ -76,7 +76,8 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val size: Point,
         // 다시 챗을 불러온다.
         mItemClickListener.onRemoveChat()
         //chatList =chatList.filter{chatlist->!chatlist.isChecked} as ArrayList<ChatList>
-        //notifyDataSetChanged()
+        notifyDataSetChanged()
+        Log.d("afterDeleteChat", "after_remove_rva: $chatList")
         return if(chatList.isNotEmpty())
             chatList[0]
         else
