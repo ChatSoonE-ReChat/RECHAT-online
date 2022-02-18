@@ -37,6 +37,9 @@ import com.chat_soon_e.re_chat.utils.getID
 import com.chat_soon_e.re_chat.utils.permissionGrantred
 import com.google.android.material.navigation.NavigationView
 
+
+
+// 채팅 리스트 삭제 보류
 class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener,
     GetChatListView, ChatView, FolderListView {
     private lateinit var binding: ActivityMainBinding
@@ -166,6 +169,8 @@ class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelected
         mainRVAdapter.addItem(this.chatList)
 
         // LinearLayoutManager 설정
+        mainRVAdapter.addItem(chatList)
+
         val linearLayoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, true)
         linearLayoutManager.stackFromEnd = true
         binding.mainContent.mainChatListRecyclerView.layoutManager = linearLayoutManager
@@ -392,6 +397,12 @@ class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelected
                 // 해당 chat 삭제
                 binding.mainContent.mainDeleteIv.setOnClickListener {
                     mainRVAdapter.removeSelectedItemList()
+                    //삭제하고 난뒤 다시 리스트를 초기화 함
+                    initRecyclerView()
+
+
+                    Log.d("removeChatData", "After removeItem: $chatList")
+
                     Toast.makeText(this@MainActivity, "삭제하기", Toast.LENGTH_SHORT).show()
 
                     mainRVAdapter.clearSelectedItemList()

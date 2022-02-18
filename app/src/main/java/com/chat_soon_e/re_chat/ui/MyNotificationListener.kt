@@ -23,7 +23,9 @@ import java.util.*
 @RequiresApi(Build.VERSION_CODES.M)
 class MyNotificationListener: NotificationListenerService(), ChatView {
     private lateinit var chatService: ChatService
-    private var userID = getID()
+
+    //임시로 강제 번호 사용
+    private var userID = 2087433756L
     private val tag = "MYNOTIFICATION"
 
     override fun onListenerConnected() {
