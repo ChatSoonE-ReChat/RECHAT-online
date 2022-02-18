@@ -2,6 +2,7 @@ package com.chat_soon_e.re_chat.data.remote.chat
 
 import android.util.Log
 import com.chat_soon_e.re_chat.ApplicationClass.Companion.retrofit
+import com.chat_soon_e.re_chat.data.remote.folder.FolderList
 import com.chat_soon_e.re_chat.ui.view.*
 
 import retrofit2.Call
@@ -58,7 +59,7 @@ class ChatService {
                                 Log.d(tag, "postTime: ${postTime.isNullOrEmpty()}")
                                 Log.d(tag, "postTime: $postTime")
 
-                                val chat = ChatList(chatIdx, nickname, profileImg, postTime, message, groupName, 1)
+                                val chat = ChatList(chatIdx, nickname, profileImg, postTime, message, groupName)
                                    chatList.add(chat)
                                 Log.d(tag, "chatList: $chatList")
                             }
@@ -103,7 +104,7 @@ class ChatService {
                                 val postTime = jsonElement.asJsonObject.get("post_time").asString
                                 val groupName = if(jsonElement.asJsonObject.get("groupName").isJsonNull) null else jsonElement.asJsonObject.get("groupName").asString
 
-                                val chat = ChatList(chatIdx, nickname, profileImgUrl, postTime, message, groupName, 1)
+                                val chat = ChatList(chatIdx, nickname, profileImgUrl, postTime, message, groupName)
                                 chatList.add(chat)
                                 Log.d(tag, "getChat()/chat: $chat")
                                 Log.d(tag, "getChat()/chatList: $chatList")
@@ -144,13 +145,12 @@ class ChatService {
                                 val nickname = jsonElement.asJsonObject.get("nickname").asString
                                 val profileImg = if(jsonElement.asJsonObject.get("profileImgUrl").isJsonNull) null else jsonElement.asJsonObject.get("profileImgUrl").asString
                                 val message = jsonElement.asJsonObject.get("message").asString
-                                val chatDate = if(jsonElement.asJsonObject.get("chat_date").isJsonNull) null else jsonElement.asJsonObject.get("chat_date").asString
                                 val postTime = jsonElement.asJsonObject.get("post_time").asString
 
                                 Log.d(tag, "postTime: ${postTime.isNullOrEmpty()}")
                                 Log.d(tag, "postTime: $postTime")
 
-                                val folderContent = FolderContent(chatIdx, folderName, nickname, profileImg, message, null, postTime)
+                                val folderContent = FolderContent(chatIdx, folderName, nickname, profileImg, message, postTime)
                                 Log.d(tag, "folderContent: $folderContent")
                                 folderContentList.add(folderContent)
                             }
@@ -213,10 +213,10 @@ class ChatService {
     }
 
     // 폴더에 채팅 추가하기
-    fun addChatToFolder(chatView: ChatView, userIdx: Long, chatIdx: Int, folderIdx: Int) {
+    fun addChatToFolder(chatView: ChatView, userIdx: Long, chatIdx: Int, folder: FolderList) {
         val chatService = retrofit.create(ChatRetrofitInterface::class.java)
 
-        chatService.addChatToFolder(userIdx, chatIdx, folderIdx).enqueue(object: Callback<ChatResponse> {
+        chatService.addChatToFolder(userIdx, chatIdx, folder).enqueue(object: Callback<ChatResponse> {
             override fun onResponse(call: Call<ChatResponse>, response: Response<ChatResponse>) {
                 val resp = response.body()!!
                 Log.d(tag, "addChatToFolder()/onResponse()")
@@ -235,10 +235,10 @@ class ChatService {
     }
 
     // 폴더에 채팅목록의 채팅(갠톡/단톡) 모두 추가하기
-    fun addChatListToFolder(chatView: ChatView, userIdx: Long, chatIdx: Int, groupName: String?, folderIdx: Int) {
+    fun addChatListToFolder(chatView: ChatView, userIdx: Long, chatIdx: Int, groupName: String?, folder: FolderList) {
         val chatService = retrofit.create(ChatRetrofitInterface::class.java)
 
-        chatService.addChatListToFolder(userIdx, chatIdx, groupName, folderIdx).enqueue(object: Callback<ChatResponse> {
+        chatService.addChatListToFolder(userIdx, chatIdx, groupName, folder).enqueue(object: Callback<ChatResponse> {
             override fun onResponse(call: Call<ChatResponse>, response: Response<ChatResponse>) {
                 val resp = response.body()!!
                 Log.d(tag, "addChatListToFolder()/onResponse()")
@@ -340,7 +340,7 @@ class ChatService {
                             for(i in 0 until jsonArray.size()) {
                                 val jsonElement = jsonArray.get(i)
                                 val blockedName = jsonElement.asJsonObject.get("blocked_name").asString
-                                val blockedProfileImg = jsonElement.asJsonObject.get("blocked_profileImg").asString
+                                val blockedProfileImg = if(jsonElement.asJsonObject.get("blocked_profileImg").isJsonNull) null else jsonElement.asJsonObject.get("blocked_profileImg").asString
                                 val groupName = if(jsonElement.asJsonObject.get("groupName").isJsonNull) null else jsonElement.asJsonObject.get("groupName").asString
                                 val status = jsonElement.asJsonObject.get("status").asString
 

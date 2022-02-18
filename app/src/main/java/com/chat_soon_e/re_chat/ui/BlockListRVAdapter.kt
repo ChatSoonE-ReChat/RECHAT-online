@@ -2,6 +2,7 @@ package com.chat_soon_e.re_chat.ui
 
 import android.annotation.SuppressLint
 import android.os.Build
+import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -17,10 +18,11 @@ import com.chat_soon_e.re_chat.databinding.ItemChatBinding
 
 class BlockListRVAdapter(
     private val mContext: BlockListActivity,
-    private val blockList: ArrayList<BlockedChatList>,
-    private val param: BlockListRVAdapter.MyClickListener
+    private val param: MyClickListener
 ): RecyclerView.Adapter<BlockListRVAdapter.ViewHolder>() {
-    var chatList = ArrayList<BlockedChatList>()
+    var blockList = ArrayList<BlockedChatList>()
+    private var tag = "RV/BLOCK-LIST"
+
     interface MyClickListener {
         fun onRemoveChat(blockList:BlockedChatList)
     }
@@ -36,12 +38,13 @@ class BlockListRVAdapter(
     }
 
     override fun getItemCount(): Int = blockList.size
-    //AddData
-    @SuppressLint("NotifyDataSetChanged")
-    fun addItem(block: List<BlockedChatList>){//차단 목록 업데이트
-        blockList.clear()
-        blockList.addAll(block as ArrayList)
 
+    // AddData
+    @SuppressLint("NotifyDataSetChanged")
+    fun addItem(block: ArrayList<BlockedChatList>){ //차단 목록 업데이트
+        blockList.clear()
+        blockList.addAll(block)
+        Log.d(tag, "addItem()/block: $block, blockList: $blockList")
         notifyDataSetChanged()
     }
 
@@ -59,14 +62,16 @@ class BlockListRVAdapter(
                 param.onRemoveChat(blockList[position])
                 removeBlock(position)
             }
-            if(block.groupName!=null&&block.groupName!="null")
-                binding.itemBlockNameTv.text=block.groupName
+
+            if(block.groupName != null && block.groupName != "null")
+                binding.itemBlockNameTv.text = block.groupName
             else
-                binding.itemBlockNameTv.text=block.blockedName
+                binding.itemBlockNameTv.text = block.blockedName
 
             if(block.blockedProfileImg!=null&&block.blockedProfileImg!="null")
                 binding.itemBlockProfileIv.setImageBitmap(loadBitmap(block.blockedProfileImg, mContext))
 
+            Log.d(tag, "ViewHolder()/block: $block")
         }
     }
 }

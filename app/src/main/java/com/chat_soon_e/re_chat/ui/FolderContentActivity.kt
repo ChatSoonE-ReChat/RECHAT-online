@@ -7,6 +7,7 @@ import android.view.WindowInsets
 import android.view.WindowManager
 import android.widget.PopupMenu
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.chat_soon_e.re_chat.data.local.AppDatabase
 import com.chat_soon_e.re_chat.data.remote.chat.ChatService
 import com.chat_soon_e.re_chat.data.remote.chat.FolderContent
@@ -28,7 +29,6 @@ class FolderContentActivity: BaseActivity<ActivityFolderContentBinding>(Activity
     private var folderContentList = ArrayList<FolderContent>()
     lateinit var folderInfo: FolderList
     private val userID = getID()
-    private val folderListContent=ArrayList<FolderContent>()
     private val tag = "ACT/FOLDER-CONTENT"
 
     override fun initAfterBinding() {
@@ -37,19 +37,11 @@ class FolderContentActivity: BaseActivity<ActivityFolderContentBinding>(Activity
         chatService = ChatService()
 
         initData()
-        initRecyclerView()
         initClickListener()
-    }
-
-    override fun onResume() {
-        super.onResume()
-        initData()
     }
 
     // FolderContent 데이터 초기화
     private fun initData(){
-        database = AppDatabase.getInstance(this)!!
-
         // 전 페이지에서 데이터 가져오는 부분
         if(intent.hasExtra("folderData")) {
             val folderJson = intent.getStringExtra("folderData")
@@ -57,10 +49,8 @@ class FolderContentActivity: BaseActivity<ActivityFolderContentBinding>(Activity
             binding.folderContentNameTv.text = folderInfo.folderName
             Log.d(tag, "data: $folderInfo")
         }
-        folderService= FolderService()
-        chatService.getFolderContent(this, userID, folderInfo.folderIdx)
 
-
+        initFolderContent()
     }
 
     private fun initFolderContent() {
@@ -78,13 +68,17 @@ class FolderContentActivity: BaseActivity<ActivityFolderContentBinding>(Activity
                 popupMenu.show()
             }
         })
-
         chatService.getFolderContent(this, userID, folderInfo.folderIdx)
     }
 
     // RecyclerView 초기화
     private fun initRecyclerView() {
+        folderContentRVAdapter.addItem(this.folderContentList)
         binding.folderContentRecyclerView.adapter = folderContentRVAdapter
+
+        val linearLayoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, true)
+        linearLayoutManager.stackFromEnd = true
+        binding.folderContentRecyclerView.layoutManager = linearLayoutManager
     }
 
     // 디바이스 크기에 사이즈를 맞추기 위한 함수

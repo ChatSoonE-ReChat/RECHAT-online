@@ -92,10 +92,10 @@ class FolderContentRVAdapter(private val mContext: FolderContentActivity, privat
             binding.itemChatDefaultNameTv.text = chat.nickname
             binding.itemChatDefaultMessageTv.text = chat.message
             if(chat.profileImgUrl==null||chat.profileImgUrl=="null") binding.itemChatDefaultProfileIv.setImageResource(R.drawable.chat_defualt_profile)
-            else binding.itemChatDefaultProfileIv.setImageBitmap(loadBitmap(chat.profileImgUrl!!, mContext))
+            else binding.itemChatDefaultProfileIv.setImageBitmap(loadBitmap(chat.profileImgUrl, mContext))
             binding.itemChatDefaultDateTimeTv.text = convertDate(binding, chat.postTime)
 
-            if(isNextDay(chat.postTime, bindingAdapterPosition)) {
+            if(bindingAdapterPosition != (chatList.size - 1) && isNextDay(chat.postTime, bindingAdapterPosition)) {
                 // 다음 날로 날짜가 바뀐 경우
                 // 혹은 날짜가 1일 이상 차이날 때
                 binding.itemChatDefaultNewDateTimeLayout.visibility = View.VISIBLE
@@ -119,16 +119,16 @@ class FolderContentRVAdapter(private val mContext: FolderContentActivity, privat
 //        val dateAsString = simpleDateFormat2.format(dateAsDate!!)
 
         // 오늘이 아니라면 날짜만
-        if(dateAsDate.year == today.year && dateAsDate.month == today.month && dateAsDate.date==today.date){
+        str = if(dateAsDate.year == today.year && dateAsDate.month == today.month && dateAsDate.date==today.date){
             val time = SimpleDateFormat("a h:mm")
-            str = time.format(dateAsDate).toString()
+            time.format(dateAsDate).toString()
         } else{
             // simpleDateFormat은 thread에 안전하지 않습니다.
             // DateTimeFormatter을 사용합시다. 아! Date를 LocalDate로도 바꿔야합니다!
             // val time_formatter=DateTimeFormatter.ofPattern("MM월 dd일")
             // date.format(time_formatter)
             val time = SimpleDateFormat("a h:mm")
-            str = time.format(dateAsDate).toString()
+            time.format(dateAsDate).toString()
         }
         return str
     }

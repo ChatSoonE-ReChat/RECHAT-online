@@ -17,6 +17,7 @@
         android:src="@drawable/menu_btn"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+    
     <!--Title-->
     <TextView
         android:id="@+id/main_title_tv"
@@ -40,6 +41,17 @@
         android:layout_height="35dp"
         android:layout_marginStart="9dp"
         android:src="@drawable/ic_baseline_cancel_24"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/main_title_tv"
+        app:layout_constraintStart_toEndOf="@id/main_title_tv"
+        app:layout_constraintTop_toTopOf="@id/main_title_tv" />
+    
+    <ImageView
+        android:id="@+id/main_update_iv"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="9dp"
+        android:src="@drawable/ic_baseline_sync_24"
         android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="@id/main_title_tv"
         app:layout_constraintStart_toEndOf="@id/main_title_tv"

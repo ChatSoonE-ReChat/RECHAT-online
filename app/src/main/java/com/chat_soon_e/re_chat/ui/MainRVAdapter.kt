@@ -26,12 +26,10 @@ import kotlin.collections.ArrayList
 
 class MainRVAdapter(private val context: Context, private val mItemClickListener: MyItemClickListener): RecyclerView.Adapter<RecyclerView.ViewHolder>(),
     ChatView {
-    private lateinit var chatService: ChatService
-
     private var selectedItemList: SparseBooleanArray = SparseBooleanArray(0)
     private val userID = getID()
     private val tag = "RV/MAIN"
-
+    private var chatService = ChatService()
     var chatList = ArrayList<ChatList>()
 
     // 클릭 인터페이스
@@ -194,14 +192,6 @@ class MainRVAdapter(private val context: Context, private val mItemClickListener
             binding.itemChatListNameTv.text = chat.chatName
             binding.itemChatListContentTv.text = chat.latestMessage
             binding.itemChatListDateTimeTv.text = chat.latestTime?.let { convertDate(it) }
-
-            Log.d(tag, "bind()/isNew: ${chat.isNew}")
-
-            if(chat.isNew == 1) { // 새로 온 경우 NEW 표시
-                binding.itemChatListNewCv.visibility = View.VISIBLE
-            } else {
-                binding.itemChatListNewCv.visibility = View.INVISIBLE
-            }
         }
     }
 
