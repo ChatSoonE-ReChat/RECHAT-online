@@ -16,8 +16,11 @@ import com.chat_soon_e.re_chat.R
 import com.chat_soon_e.re_chat.data.local.AppDatabase
 import com.chat_soon_e.re_chat.data.remote.chat.ChatList
 import com.chat_soon_e.re_chat.data.remote.chat.ChatListViewType
+import com.chat_soon_e.re_chat.data.remote.chat.ChatService
 import com.chat_soon_e.re_chat.databinding.ItemChatBinding
 import com.chat_soon_e.re_chat.databinding.ItemChatChooseBinding
+import com.chat_soon_e.re_chat.ui.view.GetChatView
+import com.chat_soon_e.re_chat.utils.getID
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.ZoneId
@@ -26,10 +29,12 @@ import java.util.*
 import java.util.Collections.addAll
 import kotlin.collections.ArrayList
 
-class ChatRVAdapter(private val mContext: ChatActivity, private val size: Point, private val mItemClickListener: MyItemClickListener): RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class ChatRVAdapter(private val mContext: ChatActivity, private val size: Point, private val mItemClickListener: MyItemClickListener): RecyclerView.Adapter<RecyclerView.ViewHolder>(), GetChatView {
     var chatList = ArrayList<ChatList>()
     var selectedItemList: SparseBooleanArray = SparseBooleanArray(0)
     private val tag = "RV/CHAT"
+    lateinit var chatService:ChatService
+    var userID= getID()
 
     // 클릭 인터페이스
     interface MyItemClickListener {
@@ -72,10 +77,12 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val size: Point,
 
     @SuppressLint("NotifyDataSetChanged")
     fun removeChat():ChatList? {
+        chatService= ChatService()
         // 서버에서 지우고
         // 다시 챗을 불러온다.
         mItemClickListener.onRemoveChat()
-        //chatList =chatList.filter{chatlist->!chatlist.isChecked} as ArrayList<ChatList>
+        chatList =chatList.filter{chatlist->!chatlist.isChecked} as ArrayList<ChatList>
+        //chatService.getChat(this, userID, chatIdx = chatList[0].chatIdx, chatList[0].groupName)
         notifyDataSetChanged()
         Log.d("afterDeleteChat", "after_remove_rva: $chatList")
         return if(chatList.isNotEmpty())
@@ -211,7 +218,7 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val size: Point,
     inner class ChooseViewHolder(private val binding: ItemChatChooseBinding, private val mItemClickListener: MyItemClickListener)
         : RecyclerView.ViewHolder(binding.root) {
         init {
-            binding.itemChatChooseMessageTv.setOnClickListener {
+            binding.layoutChatItem.setOnClickListener {
                 Log.d(tag, "bindingAdapterPosition: $bindingAdapterPosition")
                 toggleItemSelected(itemView, position = bindingAdapterPosition)
                 Log.d(tag, "selectedItemList: $selectedItemList")
@@ -365,5 +372,16 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val size: Point,
                 defaultDisplay.getSize(this)
             }
         }
+    }
+
+    override fun onGetChatSuccess(chats: ArrayList<ChatList>) {
+        Log.d("afterDeleteChat", "onGetChatSuccess/ $chats")
+        chatList.clear()
+        chatList.addAll(chats)
+        notifyDataSetChanged()
+    }
+
+    override fun onGetChatFailure(code: Int, message: String) {
+        Log.d("afterDeleteChat", "onGetChatFailure/ $code,  $message")
     }
 }

@@ -147,7 +147,7 @@
         app:layout_constraintHorizontal_bias="0.65"
         app:layout_constraintStart_toStartOf="parent" />
 
-    <!-- 차단하기 -->
+    <!-- 차단하기 --><!--왼쪽으로 이동하기-->
     <ImageView
         android:id="@+id/main_block_iv"
         android:layout_width="28dp"

@@ -4,7 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginTop="17dp"
-    android:background="@android:color/transparent">
+    android:background="@android:color/transparent"
+    android:id="@+id/layout_chat_item">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/item_chat_choose_new_date_time_layout"

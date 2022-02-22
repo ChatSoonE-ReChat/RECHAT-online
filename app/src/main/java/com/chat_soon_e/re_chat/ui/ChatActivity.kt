@@ -105,9 +105,9 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
                 for(i in selectedList){
                     chatService.deleteChat(this@ChatActivity, userID, i)
                 }
-
+                //initData()
                 // init
-                chatService.getChat(this@ChatActivity, userID, chatListData.chatIdx, chatListData.groupName)
+                //chatService.getChat(this@ChatActivity, userID, chatListData.chatIdx, chatListData.groupName)
             }
 
             // 선택 모드
@@ -194,6 +194,7 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
                 binding.chatDeleteFab.isClickable = true
                 binding.chatUpdateIv.visibility = View.GONE
                 isFabOpen = true
+                chatTypeViewModel.setMode(mode = 1)
             }
         }
 
@@ -206,21 +207,21 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
             Log.d("afterDeleteChat", "after_remove: "+chatRVAdapter.chatList.toString())
 
             chatRVAdapter.clearSelectedItemList()
-//            chatTypeViewModel.setMode(mode = 0)
-//
-//            binding.chatMainFab.setImageResource(R.drawable.navi_center_cloud)
-//            ObjectAnimator.ofFloat(binding.chatCancelFab, "translationY", 0f).apply { start() }
-//            ObjectAnimator.ofFloat(binding.chatDeleteFab, "translationY", 0f).apply { start() }
-//            binding.chatCancelFab.visibility = View.INVISIBLE
-//            binding.chatDeleteFab.visibility = View.INVISIBLE
-//            binding.chatCancelFab.isClickable = false
-//            binding.chatDeleteFab.isClickable = false
-//            isFabOpen = false
-//            binding.chatBackgroundView.visibility = View.INVISIBLE
-//
-//            // 일반 모드로
-//            chatRVAdapter.clearSelectedItemList()
-//            chatTypeViewModel.setMode(mode = 0)
+            initData()
+
+            binding.chatMainFab.setImageResource(R.drawable.navi_center_cloud)
+            ObjectAnimator.ofFloat(binding.chatCancelFab, "translationY", 0f).apply { start() }
+            ObjectAnimator.ofFloat(binding.chatDeleteFab, "translationY", 0f).apply { start() }
+            binding.chatCancelFab.visibility = View.INVISIBLE
+            binding.chatDeleteFab.visibility = View.INVISIBLE
+            binding.chatCancelFab.isClickable = false
+            binding.chatDeleteFab.isClickable = false
+            isFabOpen = false
+            binding.chatBackgroundView.visibility = View.INVISIBLE
+            binding.chatUpdateIv.visibility=View.VISIBLE
+            // 일반 모드로
+            chatRVAdapter.clearSelectedItemList()
+            chatTypeViewModel.setMode(mode = 0)
         }
 
         // 뒤로 가기 아이콘 클릭 시
@@ -327,6 +328,7 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
     override fun onGetChatSuccess(chats: ArrayList<ChatList>) {
         // 성공시
         Log.d(tag, "onGetChatSuccess(): $chats")
+        // ????????????????????
         Log.d("afterDeleteChat", "reset_chat: "+chatRVAdapter.chatList.toString())
         this.chatList.clear()
         this.chatList.addAll(chats)
