@@ -37,8 +37,6 @@ import com.chat_soon_e.re_chat.utils.getID
 import com.chat_soon_e.re_chat.utils.permissionGrantred
 import com.google.android.material.navigation.NavigationView
 
-
-
 // 채팅 리스트 삭제 보류
 class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener,
     GetChatListView, ChatView, FolderListView {
@@ -177,6 +175,7 @@ class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelected
 
         // main chat list view model
         chatTypeViewModel.mode.observe(this) {
+            //Log.d(tag, "mode observe, ui 변경, $it")
             if (it == 0) {
                 // 일반 모드 (= 이동 모드)
                 mainRVAdapter.clearSelectedItemList()
@@ -385,6 +384,7 @@ class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelected
             } else {
                 chatTypeViewModel.setMode(mode = 0)
             }
+            Log.d(tag, "mode 변경, ${chatTypeViewModel.mode.value}")
         }
 
         // 폴더 이동 선택 모드 클릭시 팝업 메뉴
@@ -394,28 +394,30 @@ class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelected
 
         // 선택 모드 시
         chatTypeViewModel.mode.observe(this) {
+            Log.d(tag, "mode observe, $it")
             if (it == 1) {
-
                 // 해당 chat 삭제
                 binding.mainContent.mainDeleteIv.setOnClickListener {
                     mainRVAdapter.removeSelectedItemList()
-                    //삭제하고 난뒤 다시 리스트를 초기화 함
-                    initRecyclerView()
-
-
+                    //삭제하고 난뒤
+                    //모드가 바뀌기 전에 할일
+                    //rva의 데이터 셋을 초기화
+                    initChatList()
+                    //mainRVAdapter.addItem(chatList)
                     Log.d("removeChatData", "After removeItem: $chatList")
 
                     Toast.makeText(this@MainActivity, "삭제하기", Toast.LENGTH_SHORT).show()
 
                     mainRVAdapter.clearSelectedItemList()
-                    chatTypeViewModel.setMode(mode = 0)
-
-                    binding.mainContent.mainFolderIv.visibility = View.VISIBLE
-                    binding.mainContent.mainFolderModeIv.visibility = View.GONE
-                    binding.mainContent.mainCancelIv.visibility = View.GONE
-                    binding.mainContent.mainUpdateIv.visibility = View.VISIBLE
-                    binding.mainContent.mainBackgroundView.visibility = View.INVISIBLE
-                    binding.mainContent.mainBlockIv.visibility = View.GONE
+//                    chatTypeViewModel.setMode(mode = 0)
+//                    mainRVAdapter.addItem(chatList)
+//
+//                    binding.mainContent.mainFolderIv.visibility = View.VISIBLE
+//                    binding.mainContent.mainFolderModeIv.visibility = View.GONE
+//                    binding.mainContent.mainCancelIv.visibility = View.GONE
+//                    binding.mainContent.mainUpdateIv.visibility = View.VISIBLE
+//                    binding.mainContent.mainBackgroundView.visibility = View.INVISIBLE
+//                    binding.mainContent.mainBlockIv.visibility = View.GONE
                 }
 
                 // 해당 chat 차단
@@ -576,6 +578,7 @@ class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelected
     override fun onGetChatListFailure(code: Int, message: String) {
         Log.d(tag, "onGetChatListFailure()/code: $code, message: $message")
         initRecyclerView()
+        if(code == 400) Toast.makeText(this,"네크워크 오류", Toast.LENGTH_LONG);
     }
 
     override fun onFolderListSuccess(folderList: ArrayList<FolderList>) {

@@ -95,6 +95,7 @@ class SplashActivity: AppCompatActivity(), UserView {
                     Log.d(tag, "토큰 유효")
                     Log.d(tag, "user id in loginPermission(): $USER_ID")
                     binding.splashKakaoBtn.visibility = View.INVISIBLE
+                    saveUserInfo("login")
 //                    binding.splashKakaoIv.visibility = View.INVISIBLE
                 }
             }

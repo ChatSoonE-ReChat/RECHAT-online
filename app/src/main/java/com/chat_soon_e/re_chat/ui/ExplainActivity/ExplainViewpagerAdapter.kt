@@ -16,6 +16,4 @@ class ExplainViewpagerAdapter(Fragment:Fragment):FragmentStateAdapter(Fragment) 
         fragmentlist.add(fragment)
         notifyItemInserted(fragmentlist.size-1);//추가된 곳의 인덱스를 뷰페이저에게 알려주는 함수
     }
-
-
 }

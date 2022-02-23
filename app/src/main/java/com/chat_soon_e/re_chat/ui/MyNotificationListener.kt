@@ -1,12 +1,14 @@
 package com.chat_soon_e.re_chat.ui
 
 import android.app.Notification
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.drawable.Icon
 import android.os.Build
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.graphics.drawable.toBitmap
 import com.chat_soon_e.re_chat.data.remote.chat.Chat
@@ -25,7 +27,7 @@ class MyNotificationListener: NotificationListenerService(), ChatView {
     private lateinit var chatService: ChatService
 
     //임시로 강제 번호 사용
-    private var userID = 2087433756L
+    private var userID = getID()
     private val tag = "MYNOTIFICATION"
 
     override fun onListenerConnected() {
@@ -37,6 +39,12 @@ class MyNotificationListener: NotificationListenerService(), ChatView {
     // 새로운 알림 올 때마다 발생한다.
     override fun onNotificationPosted(sbn: StatusBarNotification) {
         // 이 밑에 부분은 서버와 어떻게 통신하는지 잘 모르겠어서 일단 주석 처리
+        // 음....-1되면 다시 저장된 값을 불러온다.
+        if(userID.toInt()==-1){
+            userID=getID();
+            //Toast.makeText(this, "앱울 다시 시작해주세요", Toast.LENGTH_LONG);
+            Log.d(tag, "retry userID: $userID ${getID()}")
+        }
 //        if(userID.toInt() == -1) {
 //            if(AppDatabase.getInstance(this)!!.userDao().getUsers() == null)
 //                Log.d(tag, "login error, 잘못된 접근")
@@ -84,8 +92,8 @@ class MyNotificationListener: NotificationListenerService(), ChatView {
             // 음악 메세지(id == 2016) 차단
             if(name!=null && sbn.id != 2016) {
                 val fileName = if(largeIcon != null) saveCache(convertIconToBitmap(largeIcon), name + "_" + millisecond.toString()) else null
-
                 // 이미 있던 유저인지, 새로운 유저인지는 서버측에서 알아서 처리해줄 것
+                // 이거 맞아????/위에 적힌 내용 서버측
                 // 갠톡인지, 단톡인지만 구분해주자.
                 if(subText == null) {
                     // 갠톡이라면

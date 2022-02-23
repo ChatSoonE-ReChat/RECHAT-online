@@ -19,5 +19,4 @@ class Explain1Fragment(val imgRes:Int):Fragment() {
         binding.explain1Iv.setImageResource(imgRes)
         return binding.root
     }
-
 }
