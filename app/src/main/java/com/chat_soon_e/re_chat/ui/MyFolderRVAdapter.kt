@@ -15,7 +15,7 @@ class MyFolderRVAdapter(private val mContext: MyFolderActivity): RecyclerView.Ad
     private lateinit var binding: ItemMyFolderBinding
 
     private val folderList = ArrayList<FolderList>()
-    private val tag = "RV/MYFOLDER"
+    private val tag = "RV/MY-FOLDER"
 
     // 클릭 인터페이스
     interface MyItemClickListener {
@@ -123,8 +123,24 @@ class MyFolderRVAdapter(private val mContext: MyFolderActivity): RecyclerView.Ad
         RecyclerView.ViewHolder(binding.root) {
         fun bind(folder: FolderList) {
             binding.itemMyFolderTv.text = folder.folderName
-            if(folder.folderImg != null) binding.itemMyFolderIv.setImageBitmap(loadBitmap(folder.folderImg, mContext))
-            else binding.itemMyFolderIv.setImageResource(R.drawable.folder_default)
+
+            if(folder.folderImg != null) {
+                val folderImgID = getFolderImgResource(folder.folderImg)
+                if(folderImgID != 0) binding.itemMyFolderIv.setImageResource(folderImgID)
+                else binding.itemMyFolderIv.setImageResource(R.drawable.folder_default)
+            } else binding.itemMyFolderIv.setImageResource(R.drawable.folder_default)
         }
+    }
+
+    private fun getFolderImgResource(folderImgString: String): Int {
+        // res/drawable/파일명.png
+        val folderImgStringArray = folderImgString.split("/", ".")
+        val folderImgName = folderImgStringArray[2]
+        Log.d(tag, "folderImgStringArray: $folderImgStringArray")
+        Log.d(tag, "folderImgName: $folderImgName")
+
+        val folderImgID = mContext.resources.getIdentifier(folderImgName, "drawable", mContext.packageName)
+        Log.d(tag, "folderImgID: $folderImgID")
+        return folderImgID
     }
 }

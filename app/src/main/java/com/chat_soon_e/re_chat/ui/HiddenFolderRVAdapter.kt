@@ -1,6 +1,7 @@
 package com.chat_soon_e.re_chat.ui
 
 import android.annotation.SuppressLint
+import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -15,6 +16,7 @@ import com.chat_soon_e.re_chat.databinding.ItemHiddenFolderBinding
 class HiddenFolderRVAdapter(private val mContext: HiddenFolderActivity): RecyclerView.Adapter<HiddenFolderRVAdapter.ViewHolder>() {
     // 기존의 Folder RoomDB에서 서버로부터 받은 HiddenFolderList data class로 바꿨습니다.
     private val hiddenFolderList = ArrayList<FolderList>()
+    private val tag = "RV/HIDDEN-FOLDER"
 
     private lateinit var popupMenu: PopupMenu
     private lateinit var itemHiddenFolderBinding: ItemHiddenFolderBinding
@@ -122,8 +124,24 @@ class HiddenFolderRVAdapter(private val mContext: HiddenFolderActivity): Recycle
     inner class ViewHolder(val itemHiddenFolderBinding: ItemHiddenFolderBinding): RecyclerView.ViewHolder(itemHiddenFolderBinding.root) {
         fun bind(hiddenFolder: FolderList) {
             itemHiddenFolderBinding.itemHiddenFolderTv.text = hiddenFolder.folderName
-            if(hiddenFolder.folderImg != null) itemHiddenFolderBinding.itemHiddenFolderIv.setImageBitmap(loadBitmap(hiddenFolder.folderImg, mContext))
-            else itemHiddenFolderBinding.itemHiddenFolderIv.setImageResource(R.drawable.folder_cloud_lock)
+
+            if(hiddenFolder.folderImg != null) {
+                val folderImgID = getFolderImgResource(hiddenFolder.folderImg)
+                if(folderImgID != 0) itemHiddenFolderBinding.itemHiddenFolderIv.setImageResource(folderImgID)
+                else itemHiddenFolderBinding.itemHiddenFolderIv.setImageResource(R.drawable.folder_default)
+            } else itemHiddenFolderBinding.itemHiddenFolderIv.setImageResource(R.drawable.folder_default)
         }
+    }
+
+    private fun getFolderImgResource(folderImgString: String): Int {
+        // res/drawable/파일명.png
+        val folderImgStringArray = folderImgString.split("/", ".")
+        val folderImgName = folderImgStringArray[2]
+        Log.d(tag, "folderImgStringArray: $folderImgStringArray")
+        Log.d(tag, "folderImgName: $folderImgName")
+
+        val folderImgID = mContext.resources.getIdentifier(folderImgName, "drawable", mContext.packageName)
+        Log.d(tag, "folderImgID: $folderImgID")
+        return folderImgID
     }
 }

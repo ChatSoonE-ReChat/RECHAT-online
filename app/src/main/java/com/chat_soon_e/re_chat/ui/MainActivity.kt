@@ -37,8 +37,6 @@ import com.chat_soon_e.re_chat.utils.getID
 import com.chat_soon_e.re_chat.utils.permissionGrantred
 import com.google.android.material.navigation.NavigationView
 
-
-
 // 채팅 리스트 삭제 보류
 class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener,
     GetChatListView, ChatView, FolderListView {
@@ -343,6 +341,8 @@ class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelected
     override fun onBackPressed() {
         if (binding.mainDrawerLayout.isDrawerOpen(GravityCompat.START)) {
             binding.mainDrawerLayout.closeDrawers()
+        } else if(chatTypeViewModel.mode.value == 1) {
+            chatTypeViewModel.setMode(mode = 0)
         } else {
             super.onBackPressed()
         }
@@ -578,8 +578,7 @@ class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelected
     override fun onGetChatListFailure(code: Int, message: String) {
         Log.d(tag, "onGetChatListFailure()/code: $code, message: $message")
         initRecyclerView()
-        if(code==400)
-            Toast.makeText(this,"네크워크 오류", Toast.LENGTH_LONG);
+        if(code == 400) Toast.makeText(this,"네크워크 오류", Toast.LENGTH_LONG);
     }
 
     override fun onFolderListSuccess(folderList: ArrayList<FolderList>) {

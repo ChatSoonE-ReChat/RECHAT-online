@@ -25,6 +25,7 @@ import com.kakao.sdk.auth.model.OAuthToken
 import com.kakao.sdk.common.model.ClientError
 import com.kakao.sdk.common.model.ClientErrorCause
 import com.kakao.sdk.common.model.KakaoSdkError
+import com.kakao.sdk.common.util.Utility
 import com.kakao.sdk.user.UserApiClient
 
 @SuppressLint("CustomSplashScreen")
@@ -36,6 +37,10 @@ class SplashActivity: AppCompatActivity(), UserView {
         super.onCreate(savedInstanceState)
         binding = ActivitySplashBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+//        // hash key
+//        val hashKey = Utility.getKeyHash(this)
+//        Log.d(tag, "hash key: $hashKey")
 
         // defaultValue = 0, 설명창 보임 = 1, 더 이상 보이지 않음 = 2
         mSharedPreferences = getSharedPreferences("explain", MODE_PRIVATE)

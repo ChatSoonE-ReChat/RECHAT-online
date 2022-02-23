@@ -91,6 +91,12 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val size: Point,
             null
     }
 
+    private fun removeChat(position: Int) {
+        chatList.removeAt(position)
+        notifyItemRemoved(position)
+        notifyItemRangeChanged(position, itemCount);
+    }
+
     //AddData
     @SuppressLint("NotifyDataSetChanged")
     fun addItem(chat: List<ChatList>){
@@ -202,7 +208,10 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val size: Point,
                 chat.latestTime?.let { convertDateAtDefault(binding, it) }
             binding.itemChatDefaultProfileIv.setImageBitmap(loadBitmap(chat.profileImg!!, mContext))
 
-            if(bindingAdapterPosition != (chatList.size - 1) && chat.latestTime?.let { isNextDay(it, bindingAdapterPosition) } == true) {
+            if(bindingAdapterPosition == chatList.size - 1) {
+                binding.itemChatDefaultNewDateTimeLayout.visibility = View.VISIBLE
+                binding.itemChatDefaultNewDateTimeTv.text = setNewDate(chat.latestTime!!)
+            } else if(bindingAdapterPosition != (chatList.size - 1) && chat.latestTime?.let { isNextDay(it, bindingAdapterPosition) } == true) {
                 // 다음 날로 날짜가 바뀐 경우
                 // 혹은 날짜가 1일 이상 차이날 때
                 binding.itemChatDefaultNewDateTimeLayout.visibility = View.VISIBLE
@@ -218,7 +227,7 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val size: Point,
     inner class ChooseViewHolder(private val binding: ItemChatChooseBinding, private val mItemClickListener: MyItemClickListener)
         : RecyclerView.ViewHolder(binding.root) {
         init {
-            binding.layoutChatItem.setOnClickListener {
+            binding.itemChatChooseLayout.setOnClickListener {
                 Log.d(tag, "bindingAdapterPosition: $bindingAdapterPosition")
                 toggleItemSelected(itemView, position = bindingAdapterPosition)
                 Log.d(tag, "selectedItemList: $selectedItemList")
@@ -247,7 +256,10 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val size: Point,
                 chat.latestTime?.let { convertDateAtChoose(binding, it) }
             binding.itemChatChooseProfileIv.setImageBitmap(loadBitmap(chat.profileImg!!, mContext))
 
-            if(bindingAdapterPosition != (chatList.size - 1) && chat.latestTime?.let { isNextDay(it, bindingAdapterPosition) } == true) {
+            if(bindingAdapterPosition == chatList.size - 1) {
+                binding.itemChatChooseNewDateTimeLayout.visibility = View.VISIBLE
+                binding.itemChatChooseNewDateTimeTv.text = setNewDate(chat.latestTime!!)
+            } else if(bindingAdapterPosition != (chatList.size - 1) && chat.latestTime?.let { isNextDay(it, bindingAdapterPosition) } == true) {
                 // 다음 날로 날짜가 바뀐 경우
                 // 혹은 날짜가 1일 이상 차이날 때
                 binding.itemChatChooseNewDateTimeLayout.visibility = View.VISIBLE

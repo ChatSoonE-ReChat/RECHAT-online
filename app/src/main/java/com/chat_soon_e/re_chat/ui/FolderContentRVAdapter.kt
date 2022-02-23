@@ -61,7 +61,8 @@ class FolderContentRVAdapter(private val mContext: FolderContentActivity, privat
 
     inner class ViewHolder(val binding: ItemChatBinding): RecyclerView.ViewHolder(binding.root) {
         init {
-            binding.itemChatDefaultMessageTv.setOnLongClickListener {
+            binding.itemChatLayout.setOnLongClickListener {
+                Log.d(tag, "bindingAdapterPosition: $bindingAdapterPosition")
                 popupMenu = PopupMenu(mContext, binding.itemChatDefaultMessageTv, Gravity.START, 0, R.style.MyFolderOptionPopupMenuTheme)
                 popupMenu.menuInflater.inflate(R.menu.popup_chat_option_menu, popupMenu.menu)
                 popupMenu.setOnMenuItemClickListener { item ->
@@ -95,7 +96,10 @@ class FolderContentRVAdapter(private val mContext: FolderContentActivity, privat
             else binding.itemChatDefaultProfileIv.setImageBitmap(loadBitmap(chat.profileImgUrl, mContext))
             binding.itemChatDefaultDateTimeTv.text = convertDate(binding, chat.postTime)
 
-            if(bindingAdapterPosition != (chatList.size - 1) && isNextDay(chat.postTime, bindingAdapterPosition)) {
+            if(bindingAdapterPosition == chatList.size - 1) {
+                binding.itemChatDefaultNewDateTimeLayout.visibility = View.VISIBLE
+                binding.itemChatDefaultNewDateTimeTv.text = setNewDate(chat.postTime)
+            } else if(bindingAdapterPosition != (chatList.size - 1) && isNextDay(chat.postTime, bindingAdapterPosition)) {
                 // 다음 날로 날짜가 바뀐 경우
                 // 혹은 날짜가 1일 이상 차이날 때
                 binding.itemChatDefaultNewDateTimeLayout.visibility = View.VISIBLE

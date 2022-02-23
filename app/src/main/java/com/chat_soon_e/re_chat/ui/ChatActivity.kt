@@ -207,9 +207,10 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
             Log.d("afterDeleteChat", "after_remove: "+chatRVAdapter.chatList.toString())
 
             chatRVAdapter.clearSelectedItemList()
+//            binding.chatCancelFab.startAnimation(fabClose)
+
             initChat()
             //initData()
-
             binding.chatMainFab.setImageResource(R.drawable.navi_center_cloud)
             ObjectAnimator.ofFloat(binding.chatCancelFab, "translationY", 0f).apply { start() }
             ObjectAnimator.ofFloat(binding.chatDeleteFab, "translationY", 0f).apply { start() }
@@ -219,7 +220,7 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
             binding.chatDeleteFab.isClickable = false
             isFabOpen = false
             binding.chatBackgroundView.visibility = View.INVISIBLE
-            binding.chatUpdateIv.visibility=View.VISIBLE
+            binding.chatUpdateIv.visibility = View.VISIBLE
             // 일반 모드로
             chatRVAdapter.clearSelectedItemList()
             chatTypeViewModel.setMode(mode = 0)
@@ -288,6 +289,23 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
                 }
                 mPopupWindow.dismiss()
                 binding.chatBackgroundView.visibility = View.INVISIBLE
+
+                chatRVAdapter.clearSelectedItemList()
+                binding.chatMainFab.setImageResource(R.drawable.navi_center_cloud)
+                binding.chatCancelFab.startAnimation(fabClose)
+                ObjectAnimator.ofFloat(binding.chatCancelFab, "translationY", 0f).apply { start() }
+                ObjectAnimator.ofFloat(binding.chatDeleteFab, "translationY", 0f).apply { start() }
+                binding.chatCancelFab.visibility = View.INVISIBLE
+                binding.chatDeleteFab.visibility = View.INVISIBLE
+                binding.chatCancelFab.isClickable = false
+                binding.chatDeleteFab.isClickable = false
+                isFabOpen = false
+                binding.chatBackgroundView.visibility = View.INVISIBLE
+                binding.chatUpdateIv.visibility = View.VISIBLE
+
+                // 일반 모드로
+                chatRVAdapter.clearSelectedItemList()
+                chatTypeViewModel.setMode(mode = 0)
             }
         })
     }
