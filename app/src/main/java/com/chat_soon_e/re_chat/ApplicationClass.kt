@@ -9,6 +9,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import com.kakao.sdk.common.KakaoSdk
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.io.File
@@ -31,8 +32,8 @@ class ApplicationClass : Application() {
         // DB: 데이터베이스명
         const val APP_DATABASE = "$TAG-DB"
 
-        const val DEV_URL: String = "http://3.37.76.21"    // 테스트 서버 주소
-        const val PROD_URL: String = "http://3.37.76.21"    // 실서버 주소
+        const val DEV_URL: String = ""    // 테스트 서버 주소
+        const val PROD_URL: String = ""    // 실서버 주소
         const val BASE_URL: String = DEV_URL    // apk 추출할 때 알맞게 바꾸면[넣어주면] 된다.
 
         // DB: status
@@ -90,13 +91,15 @@ class ApplicationClass : Application() {
     override fun onCreate() {
         super.onCreate()
         //kakao sdk 연결
-        KakaoSdk.init(this, "63ebc69c67adf9e9e8f147df6508dc35")
+        KakaoSdk.init(this, "")
 
         // client definition
         // Http 통신할 때 클라이언트 옵션 설정해주는 부분
         val client: OkHttpClient = OkHttpClient.Builder()
             .readTimeout(30000, TimeUnit.MILLISECONDS)  // Timeout 3초 설정
             .connectTimeout(30000, TimeUnit.MILLISECONDS)
+                //에러 덨을 때 상세한 로그 출력을 위한 부분
+            .addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
 //            .addNetworkInterceptor(XAccessTokenInterceptor()) // JWT 자동 헤더 전송
             .build()
 

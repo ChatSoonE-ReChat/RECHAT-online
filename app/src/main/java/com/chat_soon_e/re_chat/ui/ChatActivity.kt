@@ -105,7 +105,7 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
                 for(i in selectedList){
                     chatService.deleteChat(this@ChatActivity, userID, i)
                 }
-                //initData()
+                initChat()
                 // init
                 //chatService.getChat(this@ChatActivity, userID, chatListData.chatIdx, chatListData.groupName)
             }
@@ -207,7 +207,8 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
             Log.d("afterDeleteChat", "after_remove: "+chatRVAdapter.chatList.toString())
 
             chatRVAdapter.clearSelectedItemList()
-            initData()
+            initChat()
+            //initData()
 
             binding.chatMainFab.setImageResource(R.drawable.navi_center_cloud)
             ObjectAnimator.ofFloat(binding.chatCancelFab, "translationY", 0f).apply { start() }
@@ -222,6 +223,7 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
             // 일반 모드로
             chatRVAdapter.clearSelectedItemList()
             chatTypeViewModel.setMode(mode = 0)
+            initChat()
         }
 
         // 뒤로 가기 아이콘 클릭 시
