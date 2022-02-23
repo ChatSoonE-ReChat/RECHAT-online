@@ -79,12 +79,15 @@ class ChatRVAdapter(private val mContext: ChatActivity, private val size: Point,
     fun removeChat():ChatList? {
         chatService= ChatService()
         // 서버에서 지우고
-        // 다시 챗을 불러온다.
         mItemClickListener.onRemoveChat()
-        chatList =chatList.filter{chatlist->!chatlist.isChecked} as ArrayList<ChatList>
-        //chatService.getChat(this, userID, chatIdx = chatList[0].chatIdx, chatList[0].groupName)
+        // rva 리스트 변경
+        val newChatList=chatList.filter{chatlist->!chatlist.isChecked} as ArrayList<ChatList>
+        chatList.clear()
+        chatList.addAll(newChatList)
         notifyDataSetChanged()
-        Log.d("afterDeleteChat", "after_remove_rva: $chatList")
+        //정상적!ㅎ
+        for(i in chatList)
+            Log.d("afterDeleteChat", "after_remove_rva: ${i.latestMessage}")
         return if(chatList.isNotEmpty())
             chatList[0]
         else

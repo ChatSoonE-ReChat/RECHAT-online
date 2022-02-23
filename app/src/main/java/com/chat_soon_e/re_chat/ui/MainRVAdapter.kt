@@ -87,6 +87,11 @@ class MainRVAdapter(private val context: Context, private val mItemClickListener
         for(i in selectedList) {
             chatService.deleteChatList(this, userID, i.chatIdx, i.groupName)
         }
+        val newChatlist=chatList.filter{ chatlist-> !(chatlist.isChecked as Boolean) }
+        chatList.clear()
+        chatList.addAll(newChatlist)
+        Log.d("removeChatData", "After removeItem in RVA $chatList")
+
         notifyDataSetChanged()
     }
 
@@ -163,7 +168,7 @@ class MainRVAdapter(private val context: Context, private val mItemClickListener
     fun addItem(chats: List<ChatList>){
         chatList.clear()
         chatList.addAll(chats as ArrayList)
-        Log.d(tag, "chatList in MainRVAdapter: $chatList")
+        Log.d("removeChatData", "chatList in MainRVAdapter: $chatList")
         notifyDataSetChanged()
     }
 

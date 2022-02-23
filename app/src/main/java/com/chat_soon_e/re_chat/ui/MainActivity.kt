@@ -164,7 +164,6 @@ class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelected
 
     // RecyclerView
     private fun initRecyclerView() {
-        mainRVAdapter.addItem(this.chatList)
 
         // LinearLayoutManager 설정
         mainRVAdapter.addItem(chatList)
@@ -398,26 +397,21 @@ class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelected
             if (it == 1) {
                 // 해당 chat 삭제
                 binding.mainContent.mainDeleteIv.setOnClickListener {
+                    //db 삭제 후, rv 초기화
                     mainRVAdapter.removeSelectedItemList()
-                    //삭제하고 난뒤
-                    //모드가 바뀌기 전에 할일
-                    //rva의 데이터 셋을 초기화
-                    initChatList()
-                    //mainRVAdapter.addItem(chatList)
-                    Log.d("removeChatData", "After removeItem: $chatList")
+
+                    Log.d("removeChatData", "After removeItem, in mainRVA: ${mainRVAdapter.chatList}")
 
                     Toast.makeText(this@MainActivity, "삭제하기", Toast.LENGTH_SHORT).show()
 
                     mainRVAdapter.clearSelectedItemList()
-//                    chatTypeViewModel.setMode(mode = 0)
-//                    mainRVAdapter.addItem(chatList)
-//
-//                    binding.mainContent.mainFolderIv.visibility = View.VISIBLE
-//                    binding.mainContent.mainFolderModeIv.visibility = View.GONE
-//                    binding.mainContent.mainCancelIv.visibility = View.GONE
-//                    binding.mainContent.mainUpdateIv.visibility = View.VISIBLE
-//                    binding.mainContent.mainBackgroundView.visibility = View.INVISIBLE
-//                    binding.mainContent.mainBlockIv.visibility = View.GONE
+                    chatTypeViewModel.setMode(mode = 0)
+                    binding.mainContent.mainFolderIv.visibility = View.VISIBLE
+                    binding.mainContent.mainFolderModeIv.visibility = View.GONE
+                    binding.mainContent.mainCancelIv.visibility = View.GONE
+                    binding.mainContent.mainUpdateIv.visibility = View.VISIBLE
+                    binding.mainContent.mainBackgroundView.visibility = View.INVISIBLE
+                    binding.mainContent.mainBlockIv.visibility = View.GONE
                 }
 
                 // 해당 chat 차단

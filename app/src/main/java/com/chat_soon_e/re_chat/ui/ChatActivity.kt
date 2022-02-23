@@ -97,7 +97,6 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
         chatRVAdapter = ChatRVAdapter(this, size, object : ChatRVAdapter.MyItemClickListener {
             // 채팅 삭제
             override fun onRemoveChat() {
-                Log.d("chatPositionCheck", "지우려는 채팅들 chatLIst: $chatList")
 
                 // Server API: 채팅들 지우기
                 // 선택된 chatIdx들 모두 가져와서 지우기
@@ -105,7 +104,8 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
                 for(i in selectedList){
                     chatService.deleteChat(this@ChatActivity, userID, i)
                 }
-                initChat()
+
+                // initChat()
                 // init
                 //chatService.getChat(this@ChatActivity, userID, chatListData.chatIdx, chatListData.groupName)
             }
@@ -205,12 +205,12 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
                 chatListData = data
 
             Log.d("afterDeleteChat", "after_remove: "+chatRVAdapter.chatList.toString())
-
+            this.chatList.clear()
+            this.chatList.addAll(chatRVAdapter.chatList)
             chatRVAdapter.clearSelectedItemList()
-//            binding.chatCancelFab.startAnimation(fabClose)
 
-            initChat()
-            //initData()
+
+            binding.chatCancelFab.startAnimation(fabClose)
             binding.chatMainFab.setImageResource(R.drawable.navi_center_cloud)
             ObjectAnimator.ofFloat(binding.chatCancelFab, "translationY", 0f).apply { start() }
             ObjectAnimator.ofFloat(binding.chatDeleteFab, "translationY", 0f).apply { start() }
@@ -224,7 +224,6 @@ class ChatActivity: BaseActivity<ActivityChatBinding>(ActivityChatBinding::infla
             // 일반 모드로
             chatRVAdapter.clearSelectedItemList()
             chatTypeViewModel.setMode(mode = 0)
-            initChat()
         }
 
         // 뒤로 가기 아이콘 클릭 시
