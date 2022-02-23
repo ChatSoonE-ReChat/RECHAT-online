@@ -342,6 +342,8 @@ class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelected
     override fun onBackPressed() {
         if (binding.mainDrawerLayout.isDrawerOpen(GravityCompat.START)) {
             binding.mainDrawerLayout.closeDrawers()
+        } else if(chatTypeViewModel.mode.value == 1) {
+            chatTypeViewModel.setMode(mode = 0)
         } else {
             super.onBackPressed()
         }
@@ -573,6 +575,7 @@ class MainActivity: AppCompatActivity(), NavigationView.OnNavigationItemSelected
 
     override fun onGetChatListFailure(code: Int, message: String) {
         Log.d(tag, "onGetChatListFailure()/code: $code, message: $message")
+        initRecyclerView()
     }
 
     override fun onFolderListSuccess(folderList: ArrayList<FolderList>) {

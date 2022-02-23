@@ -2,6 +2,7 @@ package com.chat_soon_e.re_chat.ui
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
@@ -13,6 +14,7 @@ import com.chat_soon_e.re_chat.databinding.ItemFolderListBinding
 class FolderListRVAdapter(private val mContext: Context): RecyclerView.Adapter<FolderListRVAdapter.ViewHolder>() {
     // 기존의 Folder RoomDB 대신 서버로부터 받은 FolderList data class를 사용하도록 했습니다.
     private val folderList = ArrayList<FolderList>()
+    private val tag = "RV/FOLDER-LIST"
 
     // 클릭 인터페이스
     interface MyItemClickListener {
@@ -53,8 +55,24 @@ class FolderListRVAdapter(private val mContext: Context): RecyclerView.Adapter<F
     inner class ViewHolder(val binding: ItemFolderListBinding): RecyclerView.ViewHolder(binding.root) {
         fun bind(folder: FolderList) {
             binding.itemFolderListTv.text = folder.folderName
-            if(folder.folderImg != null) binding.itemFolderListIv.setImageBitmap(loadBitmap(folder.folderImg, mContext))
-            else binding.itemFolderListIv.setImageResource(R.drawable.folder_default)
+
+            if(folder.folderImg != null) {
+                val folderImgID = getFolderImgResource(folder.folderImg)
+                if(folderImgID != 0) binding.itemFolderListIv.setImageResource(folderImgID)
+                else binding.itemFolderListIv.setImageResource(R.drawable.folder_default)
+            } else binding.itemFolderListIv.setImageResource(R.drawable.folder_default)
         }
+    }
+
+    private fun getFolderImgResource(folderImgString: String): Int {
+        // res/drawable/파일명.png
+        val folderImgStringArray = folderImgString.split("/", ".")
+        val folderImgName = folderImgStringArray[2]
+        Log.d(tag, "folderImgStringArray: $folderImgStringArray")
+        Log.d(tag, "folderImgName: $folderImgName")
+
+        val folderImgID = mContext.resources.getIdentifier(folderImgName, "drawable", mContext.packageName)
+        Log.d(tag, "folderImgID: $folderImgID")
+        return folderImgID
     }
 }

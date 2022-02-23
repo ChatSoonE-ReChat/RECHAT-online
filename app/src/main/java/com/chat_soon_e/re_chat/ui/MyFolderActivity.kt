@@ -30,6 +30,7 @@ import com.chat_soon_e.re_chat.ui.view.*
 import com.chat_soon_e.re_chat.utils.getID
 import com.google.gson.Gson
 import java.io.ByteArrayOutputStream
+import android.util.TypedValue
 
 class MyFolderActivity: BaseActivity<ActivityMyFolderBinding>(ActivityMyFolderBinding::inflate),
     NavigationView.OnNavigationItemSelectedListener, FolderListView, FolderAPIView {
@@ -268,6 +269,10 @@ class MyFolderActivity: BaseActivity<ActivityMyFolderBinding>(ActivityMyFolderBi
             // popupFolderBottomMenu()
             // 폴더 생성하기
             folderService.createFolder(this, userID)
+
+            // 폴더를 생성한 후 폴더 리스트 불러와서 초기화해줘야 한다.
+            initFolder()
+
 //            getFolderListLiveData()
             setFolderName()
         }
@@ -385,15 +390,20 @@ class MyFolderActivity: BaseActivity<ActivityMyFolderBinding>(ActivityMyFolderBi
                 val selectedIcon = iconList[iconPosition]
                 itemBinding.itemMyFolderIv.setImageResource(selectedIcon.iconImage)
 
-                val iconBitmap = BitmapFactory.decodeResource(resources, selectedIcon.iconImage)
-                val baos = ByteArrayOutputStream()
-                iconBitmap.compress(Bitmap.CompressFormat.PNG, 70, baos)
+                val value = TypedValue()
+                resources.getValue(selectedIcon.iconImage, value, true)
+                if(value.string != null) {
+                    // 폴더 아이콘 바꾸기
+                    folderService.changeFolderIcon(this@MyFolderActivity, userID, folderIdx, FolderList(folderIdx, folderList[position].folderName, value.string.toString()))
 
-                val iconBitmapAsByte = baos.toByteArray()
-                val iconBitmapAsString = Base64.encodeToString(iconBitmapAsByte, Base64.DEFAULT)
+                }
 
-                // 폴더 아이콘 바꾸기
-                folderService.changeFolderIcon(this@MyFolderActivity, userID, folderIdx, FolderList(folderIdx, folderList[position].folderName, iconBitmapAsString))
+//                val iconBitmap = BitmapFactory.decodeResource(resources, selectedIcon.iconImage)
+//                val baos = ByteArrayOutputStream()
+//                iconBitmap.compress(Bitmap.CompressFormat.PNG, 70, baos)
+//
+//                val iconBitmapAsByte = baos.toByteArray()
+//                val iconBitmapAsString = Base64.encodeToString(iconBitmapAsByte, Base64.DEFAULT)
 
                 // 팝업 윈도우 종료
                 mPopupWindow.dismiss()
@@ -472,13 +482,18 @@ class MyFolderActivity: BaseActivity<ActivityMyFolderBinding>(ActivityMyFolderBi
 
                 // Bitmap bigPictureBitmap  = BitmapFactory.decodeResource(context.getResources(), R.drawable.i_hero);
 
-                val newFolderIdx = folderList.size
+                val newFolderPosition = folderList.size - 1
 
-                // 폴더 이름 바꾸기
-                folderService.changeFolderName(this@MyFolderActivity, userID, folderList[newFolderIdx].folderIdx, FolderList(newFolderIdx, name, iconBitmapAsString))
+                val value = TypedValue()
+                resources.getValue(selectedIcon.iconImage, value, true)
+                if(value.string != null) {
+                    // 폴더 이름 바꾸기
+//                folderService.changeFolderName(this@MyFolderActivity, userID, folderList[newFolderIdx].folderIdx, FolderList(newFolderIdx, name, iconBitmapAsString))
+                    folderService.changeFolderName(this@MyFolderActivity, userID, folderList[newFolderPosition].folderIdx, FolderList(folderList[newFolderPosition].folderIdx, name, value.string.toString()))
 
-                // 폴더 아이콘 바꾸기
-                folderService.changeFolderIcon(this@MyFolderActivity, userID, folderList[newFolderIdx].folderIdx, FolderList(newFolderIdx, name, iconBitmapAsString))
+                    // 폴더 아이콘 바꾸기
+                    folderService.changeFolderIcon(this@MyFolderActivity, userID, folderList[newFolderPosition].folderIdx, FolderList(folderList[newFolderPosition].folderIdx, name, value.string.toString()))
+                }
 
                 // 팝업 윈도우 종료
                 mPopupWindow.dismiss()
@@ -512,6 +527,7 @@ class MyFolderActivity: BaseActivity<ActivityMyFolderBinding>(ActivityMyFolderBi
 
     override fun onFolderAPISuccess() {
         Log.d(tag, "onFolderAPISuccess()")
+        initFolder()
     }
 
     override fun onFolderAPIFailure(code: Int, message: String) {
@@ -527,5 +543,6 @@ class MyFolderActivity: BaseActivity<ActivityMyFolderBinding>(ActivityMyFolderBi
 
     override fun onFolderListFailure(code: Int, message: String) {
         Log.d(tag, "onFolderListFailure()/code: $code, message: $message")
+        initRecyclerView()
     }
 }
