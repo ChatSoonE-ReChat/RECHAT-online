@@ -14,8 +14,13 @@ config/secret.js
 
 # unneccessary (security issue)
 package-lock.json
+node_modules
+.idea
+.idea/*
 
 # Logs
+log
+log/*
 logs
 *.log
 npm-debug.log*

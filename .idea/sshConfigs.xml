@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="SshConfigs">
-    <configs>
-      <sshConfig host="3.37.76.21" id="56610785-24b9-4ae7-98ee-bd4b5382973e" keyPath="$PROJECT_DIR$/../../../../Authentications/chatsoone_aws_keypair.pem" port="22" nameFormat="DESCRIPTIVE" username="ubuntu" useOpenSSHConfig="true" />
-    </configs>
-  </component>
-</project>
